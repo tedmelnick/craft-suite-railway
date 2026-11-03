@@ -103,7 +103,7 @@
 <body>
 <header>
   <h1>Craft <span>Suite</span></h1>
-  <p>Six open-source, clean-room reimplementations of classic creative tools — pure Rust, compiled to WebAssembly, running entirely in your browser.</p>
+  <p>Sixteen open-source, clean-room reimplementations of classic creative tools — pure Rust, compiled to WebAssembly, running entirely in your browser.</p>
 </header>
 <main id="apps"></main>
 
@@ -153,7 +153,7 @@
         <p>Keep the app window <b>visible</b> &mdash; hidden tabs pause their frame loop.</p>
       </div>
     </div>
-    <p class="fine">Nothing connects until you click Connect in the page, and the bridge only ever drives the tab it lives in &mdash; a read-only toggle and Disconnect sit in the <span class="fabdemo">&#10686;</span> panel. Works with 5 of the 6 apps today (all but VectorCraft).</p>
+    <p class="fine">Nothing connects until you click Connect in the page, and the bridge only ever drives the tab it lives in &mdash; a read-only toggle and Disconnect sit in the <span class="fabdemo">&#10686;</span> panel. Works with 5 of the 16 apps today: PhotoCraft, LightCraft, PdfCraft, FilmCraft and EffectCraft.</p>
   </div>
 </section>
 
@@ -170,16 +170,33 @@ const APPS = [
   { slug: "vectorcraft", like: "Illustrator", desc: "Vector graphics editor: paths, typography, effects, SVG and PDF export." },
   { slug: "filmcraft",   like: "Premiere",    desc: "Non-linear video editor: timeline, color grading, effects, in-house codecs." },
   { slug: "effectcraft", like: "After Effects", desc: "Motion graphics and compositing: layers, keyframes, expressions, render queue." },
+  { slug: "designcraft", like: "InDesign",    desc: "Desktop publishing and page layout." },
+  { slug: "figcraft",    like: "Figma",       desc: "Interface design: frames, auto layout, components, variants, prototypes." },
+  { slug: "wordcraft",   like: "Word",        desc: "Word processor: styles, tables, track changes, mail merge, .docx." },
+  { slug: "gridcraft",   like: "Excel",       desc: "Spreadsheets." },
+  { slug: "deckcraft",   like: "PowerPoint",  desc: "Slide decks: themes, layouts, charts, transitions, .pptx, full-screen presenting." },
+  { slug: "soundcraft",  name: "SoundCraft", like: "a DAW", desc: "Digital audio workstation: multitrack editing, mixer, plugins, automation, MIDI." },
+  { slug: "cadcraft",    name: "CADCraft", like: "AutoCAD", desc: "CAD drafting: command line, object snaps, layers, dimensions, hatches, DXF." },
+  { slug: "materialcraft", like: "Substance Designer", desc: "Node-graph PBR material builder with live 2D/3D preview and map export." },
+  { slug: "texturecraft",  like: "Substance Painter",  desc: "3D texture painting: PBR layers, masks, baked mesh maps, smart materials." },
+  { slug: "craft-anything", name: "Craft Anything", like: "", desc: "Studies a target, has a coding agent build a new project, and refines it against the original." },
 ];
+const ICONS = new Set(["photocraft", "lightcraft", "pdfcraft", "vectorcraft", "filmcraft", "effectcraft"]);
 const el = document.getElementById("apps");
 for (const a of APPS) {
   const card = document.createElement("a");
   card.className = "card";
   card.href = a.slug + "/";
+  const name = a.name || (a.slug.charAt(0).toUpperCase() + a.slug.slice(1).replace(/craft$/, "Craft"));
+  // Apps without a bundled icon fall back to a letter badge.
+  const badge = '<span class="icon" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:var(--accent,#7c5cff);color:#fff;font-weight:700">' + name.charAt(0) + '</span>';
+  const icon = ICONS.has(a.slug)
+    ? '<img class="icon" src="icons/' + a.slug + '.png" alt="" width="30" height="30" loading="lazy">'
+    : badge;
   card.innerHTML =
-    '<div class="name"><img class="icon" src="icons/' + a.slug + '.png" alt="" width="30" height="30" loading="lazy">' + a.slug.charAt(0).toUpperCase() + a.slug.slice(1) +
+    '<div class="name">' + icon + name +
     '<span class="ver" data-ver="' + a.slug + '"></span></div>' +
-    '<div class="like">like ' + a.like + '</div>' +
+    (a.like ? '<div class="like">like ' + a.like + '</div>' : '') +
     '<div class="desc">' + a.desc + '</div>';
   el.appendChild(card);
 }

@@ -11,6 +11,19 @@ ARG PDFCRAFT_VERSION=0.5.0-main2
 ARG VECTORCRAFT_VERSION=0.7.0
 ARG FILMCRAFT_VERSION=0.4.0-main
 ARG EFFECTCRAFT_VERSION=0.6.0
+# Additional ArtCraft-launcher apps (unmodified upstream web builds; no
+# in-page agent API yet, so they load in the browser but the relay can't
+# drive them).
+ARG CADCRAFT_VERSION=0.8.0
+ARG DECKCRAFT_VERSION=0.9.0
+ARG GRIDCRAFT_VERSION=0.9.0
+ARG SOUNDCRAFT_VERSION=0.8.0
+ARG CRAFT_ANYTHING_VERSION=0.3.0
+ARG DESIGNCRAFT_VERSION=0.17.0
+ARG FIGCRAFT_VERSION=0.15.0
+ARG MATERIALCRAFT_VERSION=0.1.0
+ARG TEXTURECRAFT_VERSION=0.3.0
+ARG WORDCRAFT_VERSION=0.15.0
 # The FilmCraft, PhotoCraft and PdfCraft web builds that ship the in-page
 # agent APIs (window.filmcraft / window.photocraft / window.pdfcraft) are
 # published from this repo, not upstream — they carry a "-main" version
@@ -32,17 +45,26 @@ RUN set -eux; \
       unzip -q /tmp/app.zip -d /tmp/app; \
       mv "/tmp/app/${repo}-web-${ver}" "/site/${repo}"; \
       rm -rf /tmp/app /tmp/app.zip; \
+      printf '%s"%s":"v%s"' "${sep:-}" "$repo" "$ver" >> /tmp/versions.part; sep=","; \
     }; \
-    fetch photocraft  "${PHOTOCRAFT_VERSION}" "${PHOTOCRAFT_URL}"; \
-    fetch lightcraft  "${LIGHTCRAFT_VERSION}"; \
-    fetch pdfcraft    "${PDFCRAFT_VERSION}" "${PDFCRAFT_URL}"; \
-    fetch vectorcraft "${VECTORCRAFT_VERSION}"; \
-    fetch filmcraft   "${FILMCRAFT_VERSION}" "${FILMCRAFT_URL}"; \
-    fetch effectcraft "${EFFECTCRAFT_VERSION}"; \
-    printf '{"photocraft":"v%s","lightcraft":"v%s","pdfcraft":"v%s","vectorcraft":"v%s","filmcraft":"v%s","effectcraft":"v%s"}\n' \
-      "${PHOTOCRAFT_VERSION}" "${LIGHTCRAFT_VERSION}" "${PDFCRAFT_VERSION}" \
-      "${VECTORCRAFT_VERSION}" "${FILMCRAFT_VERSION}" "${EFFECTCRAFT_VERSION}" \
-      > /site/versions.json
+    fetch photocraft     "${PHOTOCRAFT_VERSION}" "${PHOTOCRAFT_URL}"; \
+    fetch lightcraft     "${LIGHTCRAFT_VERSION}"; \
+    fetch pdfcraft       "${PDFCRAFT_VERSION}" "${PDFCRAFT_URL}"; \
+    fetch vectorcraft    "${VECTORCRAFT_VERSION}"; \
+    fetch filmcraft      "${FILMCRAFT_VERSION}" "${FILMCRAFT_URL}"; \
+    fetch effectcraft    "${EFFECTCRAFT_VERSION}"; \
+    fetch cadcraft       "${CADCRAFT_VERSION}"; \
+    fetch deckcraft      "${DECKCRAFT_VERSION}"; \
+    fetch gridcraft      "${GRIDCRAFT_VERSION}"; \
+    fetch soundcraft     "${SOUNDCRAFT_VERSION}"; \
+    fetch craft-anything "${CRAFT_ANYTHING_VERSION}"; \
+    fetch designcraft    "${DESIGNCRAFT_VERSION}"; \
+    fetch figcraft       "${FIGCRAFT_VERSION}"; \
+    fetch materialcraft  "${MATERIALCRAFT_VERSION}"; \
+    fetch texturecraft   "${TEXTURECRAFT_VERSION}"; \
+    fetch wordcraft      "${WORDCRAFT_VERSION}"; \
+    { printf '{'; cat /tmp/versions.part; printf '}\n'; } > /site/versions.json; \
+    rm /tmp/versions.part
 
 # Craft Relay bridge: static script served same-origin. Inject the script
 # tags BEFORE precompressing, so index.html.gz matches the on-disk file.
