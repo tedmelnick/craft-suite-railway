@@ -10,7 +10,7 @@ ARG LIGHTCRAFT_VERSION=0.18.0
 ARG PDFCRAFT_VERSION=0.5.0-main2
 ARG VECTORCRAFT_VERSION=0.21.0
 ARG FILMCRAFT_VERSION=0.17.0
-ARG EFFECTCRAFT_VERSION=0.21.0
+ARG EFFECTCRAFT_VERSION=0.6.0
 # Additional ArtCraft-launcher apps (unmodified upstream web builds; no
 # in-page agent API yet, so they load in the browser but the relay can't
 # drive them).
