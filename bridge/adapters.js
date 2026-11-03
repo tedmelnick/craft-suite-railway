@@ -396,5 +396,81 @@
     }
   };
 
+  /* ---------------- VectorCraft ----------------
+   * In-page API (upstream v0.21+, installed from the wasm as window.vectorcraft):
+   * execute(command, params) / commands() / inspect() / screenshot() mirror
+   * the desktop control channel (engine.execute, engine.commands, ui.inspect,
+   * ui.screenshot); files()/readFile(path) expose saves and exports;
+   * openFile(...) imports. Calls reject with "VectorCraft is not running yet"
+   * until the engine has booted. Older builds have no API (detect() never
+   * fires). Command reference: docs/mcp.md in storytold/vectorcraft. */
+  adapters.vectorcraft = {
+    app: "vectorcraft",
+    versions: ["0.21"],
+    detect: function () { return typeof window.vectorcraft === "object" && typeof window.vectorcraft.execute === "function"; },
+    readOnlyCommands: ["document.formats", "document.info"],
+    listCommands: function (filter) {
+      return Promise.resolve(window.vectorcraft.commands()).then(function (cmds) {
+        var list = cmds instanceof Array ? cmds : (cmds && cmds.commands instanceof Array ? cmds.commands : null);
+        if (!list) return { note: "catalog not an array; raw follows", raw: cmds, filter: filter };
+        var f = (filter || "").toLowerCase();
+        return f ? list.filter(function (c) { return JSON.stringify(c).toLowerCase().indexOf(f) !== -1; }) : list;
+      });
+    },
+    runCommand: function (command, params) { return window.vectorcraft.execute(command, params || {}); },
+    inspect: function () { return window.vectorcraft.inspect(); },
+    image: function () {
+      // Prefer an engine-side render (document.export without a path returns
+      // dataBase64): no GPU capture, so it works even when the canvas isn't
+      // drawing. Fall back to a window screenshot.
+      return window.vectorcraft.execute("document.export", { format: "png", scale: 1 }).then(function (r) {
+        var b = r && (r.dataBase64 || r.data_base64 || r.data);
+        if (!b) throw new Error("document.export returned no data");
+        return { mime: "image/png", base64: b };
+      }).catch(function () {
+        return Promise.resolve(window.vectorcraft.screenshot({})).then(normalizeImage, function (e) {
+          throw new Error("screenshot failed: " + (e && (e.message || e)));
+        });
+      });
+    },
+    listFiles: function () { return window.vectorcraft.files(); },
+    file: function (path) {
+      return Promise.resolve(window.vectorcraft.readFile(path)).then(function (bytes) {
+        if (bytes && bytes instanceof Error) throw bytes;
+        if (!bytes) throw new Error(path + ": not found");
+        return bytes;
+      });
+    },
+    sendFile: function (path, url, method) {
+      return uploadBytes(function (p) { return Promise.resolve(window.vectorcraft.readFile(p)); }, path, url, method);
+    },
+    importFile: function (args) {
+      if (typeof window.vectorcraft.openFile !== "function") {
+        return Promise.reject(new Error("this VectorCraft build has no openFile"));
+      }
+      // openFile's exact signature isn't documented for the web build: try a
+      // File (drop-style), then (name, bytes).
+      var open = function (name, bytes) {
+        return Promise.resolve().then(function () {
+          return window.vectorcraft.openFile(new File([bytes], name));
+        }).catch(function (first) {
+          return Promise.resolve(window.vectorcraft.openFile(name, bytes)).catch(function () { throw first; });
+        });
+      };
+      if (args.url) {
+        var name = args.name || args.url.split(/[?#]/)[0].split("/").pop() || "download";
+        return fetch(args.url, { mode: "cors" }).then(function (resp) {
+          if (!resp.ok) throw new Error(args.url + ": HTTP " + resp.status);
+          return resp.arrayBuffer();
+        }).then(function (buf) {
+          return open(name, new Uint8Array(buf));
+        }, function (e) {
+          throw new Error("fetch failed (does the URL send Access-Control-Allow-Origin? " + (e && e.message ? e.message : e) + ")");
+        });
+      }
+      return open(args.name, window.CraftRelayFileKit.fromBase64(args.base64));
+    }
+  };
+
   window.CraftRelayDenied = denied;
 })();
