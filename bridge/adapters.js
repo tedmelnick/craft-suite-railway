@@ -87,7 +87,7 @@
    * of the confirmed commands. */
   adapters.lightcraft = {
     app: "lightcraft",
-    versions: ["0.4"],
+    versions: ["0.4", "0.18"],
     detect: function () { return typeof window.lightcraft === "object" && typeof window.lightcraft.command === "function"; },
     readOnlyCommands: ["library.info", "develop.controls", "develop.get"],
     catalog: [
@@ -186,7 +186,7 @@
    * loop, so a stalled/hidden tab means calls hang until the relay timeout. */
   adapters.filmcraft = {
     app: "filmcraft",
-    versions: ["0.4"],
+    versions: ["0.4", "0.17"],
     detect: function () { return typeof window.filmcraft === "object" && typeof window.filmcraft.execute === "function"; },
     readOnlyCommands: [],
     notReady: function () {
