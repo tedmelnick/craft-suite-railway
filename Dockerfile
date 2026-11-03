@@ -6,29 +6,31 @@
 FROM alpine:3.20 AS fetch
 
 ARG PHOTOCRAFT_VERSION=0.5.0-main4
-ARG LIGHTCRAFT_VERSION=0.4.0
+ARG LIGHTCRAFT_VERSION=0.18.0
 ARG PDFCRAFT_VERSION=0.5.0-main2
-ARG VECTORCRAFT_VERSION=0.7.0
-ARG FILMCRAFT_VERSION=0.4.0-main
-ARG EFFECTCRAFT_VERSION=0.6.0
+ARG VECTORCRAFT_VERSION=0.21.0
+ARG FILMCRAFT_VERSION=0.17.0
+ARG EFFECTCRAFT_VERSION=0.21.0
 # Additional ArtCraft-launcher apps (unmodified upstream web builds; no
 # in-page agent API yet, so they load in the browser but the relay can't
 # drive them).
-ARG CADCRAFT_VERSION=0.8.0
-ARG DECKCRAFT_VERSION=0.9.0
-ARG GRIDCRAFT_VERSION=0.9.0
-ARG SOUNDCRAFT_VERSION=0.8.0
+ARG CADCRAFT_VERSION=0.17.0
+ARG DECKCRAFT_VERSION=0.15.0
+ARG GRIDCRAFT_VERSION=0.16.0
+ARG SOUNDCRAFT_VERSION=0.17.0
 ARG CRAFT_ANYTHING_VERSION=0.3.0
 ARG DESIGNCRAFT_VERSION=0.17.0
 ARG FIGCRAFT_VERSION=0.15.0
 ARG MATERIALCRAFT_VERSION=0.1.0
 ARG TEXTURECRAFT_VERSION=0.3.0
 ARG WORDCRAFT_VERSION=0.15.0
-# The FilmCraft, PhotoCraft and PdfCraft web builds that ship the in-page
-# agent APIs (window.filmcraft / window.photocraft / window.pdfcraft) are
-# published from this repo, not upstream — they carry a "-main" version
+# The PhotoCraft and PdfCraft web builds that ship the in-page agent APIs
+# (window.photocraft / window.pdfcraft, incl. PdfCraft's form.* commands) are
+# published from derekcheungsa/craft-suite-railway, not upstream. FilmCraft's
+# upstream releases now ship window.filmcraft, so FILMCRAFT_URL is empty and
+# the upstream build is used — they carry a "-main" version
 # suffix and a commit-tagged asset.
-ARG FILMCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/filmcraft-web-0.4.0-main-7b6c134/filmcraft-web-0.4.0-main.zip"
+ARG FILMCRAFT_URL=""
 ARG PHOTOCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/photocraft-web-0.5.0-main4-0c72d95/photocraft-web-0.5.0-main4.zip"
 ARG PDFCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/pdfcraft-web-0.5.0-main2-23f0675/pdfcraft-web-0.5.0-main2.zip"
 
