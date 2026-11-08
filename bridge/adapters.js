@@ -524,6 +524,8 @@
     },
     figcraft: {
       versions: ["0.15.0-main"],
+      // FigCraft installs window.figcraft only with ?control in the page URL (opt-in).
+      urlFlag: "control",
       control: UI_COMMON.concat(["document.inspect", "doc.list", "ui.input", "ui.pointer", "ui.menu.invoke", "ui.render", "command.batch"]),
       readOnly: ["document.inspect", "doc.list", "ui.inspect", "ui.screenshot", "ui.render"],
       openExt: /\.(fig|figcraft|svg|png|jpe?g)$/i
@@ -545,6 +547,9 @@
     },
     designcraft: {
       versions: ["0.17.0-main"],
+      // DesignCraft's ui.screenshot returns pixels only when it can write a file (no inline
+      // PNG on the web), so images come from ui.render, the current page rendered in the engine.
+      renderAlways: true,
       control: UI_COMMON.concat(["document.inspect", "app.open", "app.save", "app.export", "ui.dialog.open", "ui.dialog.set",
         "ui.dialog.confirm", "ui.dialog.cancel", "ui.docking", "ui.ime", "ui.menu.invoke", "ui.menu.list", "ui.paste",
         "ui.pointer", "ui.render", "ui.tool.list", "ui.tool.select"]),
@@ -616,6 +621,16 @@
     window.addEventListener("beforeunload", function (ev) { if (hostState.dirty) { ev.preventDefault(); ev.returnValue = ""; } });
   }
   function dbgHost(e) { try { console.log("[craft-relay] host:", e); } catch (x) { /* ignore */ } }
+  // An app that installs window.<app> only behind a URL flag gets it here, before its
+  // wasm (a module script, which runs after this one) reads the address.
+  if (CRAFT_HOSTED[PAGE_APP] && CRAFT_HOSTED[PAGE_APP].urlFlag) {
+    var flag = CRAFT_HOSTED[PAGE_APP].urlFlag;
+    var params = new URLSearchParams(location.search);
+    if (!params.has(flag)) {
+      params.append(flag, "");
+      try { history.replaceState(history.state, "", location.pathname + "?" + params.toString().replace(new RegExp("(^|&)" + flag + "=($|&)"), "$1" + flag + "$2") + location.hash); } catch (e) { dbgHost(e); }
+    }
+  }
   if (CRAFT_HOSTED[PAGE_APP] && CRAFT_HOSTED[PAGE_APP].openExt) {
     // This script runs at the end of <body>, so the canvas is already there and the
     // app's wasm (a module script) hasn't started: set data-host now, not at
@@ -692,6 +707,11 @@
         // mode "screenshot" (or "window"): what the window shows. Otherwise an app with an
         // engine page render (WordCraft) renders the page, which works even when the tab
         // isn't drawing.
+        if (spec.renderAlways) {
+          return call("ui.render", typeof mode === "number" ? { page: mode, scale: 1 } : { scale: 1 }).then(normalizeImage, function (e) {
+            throw new Error("page render failed (is a document open?): " + (e && (e.message || e)));
+          });
+        }
         if (spec.renderPage && mode !== "screenshot" && mode !== "window") {
           return call("ui.render", { page: typeof mode === "number" ? mode : 1, scale: 1 }).then(normalizeImage).catch(shot);
         }
