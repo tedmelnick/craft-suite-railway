@@ -188,7 +188,7 @@
     var tool = m.tool, args = m.args || {};
     var t0 = performance.now();
 
-    if (!adapter) { reply(m.id, false, "this app build has no agent adapter (supported: lightcraft, effectcraft)"); return; }
+    if (!adapter) { reply(m.id, false, "this app build has no agent API yet (reload the tab after a deploy; supported apps: " + Object.keys(window.CraftRelayAdapters || {}).join(", ") + ")"); return; }
     if (state.versionOk === false) {
       reply(m.id, false, "adapter built for " + adapter.app + " v" + adapter.versions.join("/") + " but page runs " + state.version + " — tools disabled until the adapter is updated");
       return;
@@ -217,11 +217,11 @@
       return;
     }
     if ((tool === "list_files" || tool === "get_file" || tool === "send_file") && !adapter.listFiles) {
-      reply(m.id, false, "this app's adapter has no file API (filmcraft, effectcraft and photocraft do)");
+      reply(m.id, false, "this app's adapter has no file API; use its own save/export commands");
       return;
     }
     if (tool === "put_file" && !adapter.importFile) {
-      reply(m.id, false, "this app's adapter cannot import files (filmcraft, effectcraft and photocraft can)");
+      reply(m.id, false, "this app's adapter cannot import files; use its own open command");
       return;
     }
 
