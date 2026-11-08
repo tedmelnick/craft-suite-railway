@@ -587,7 +587,10 @@
       },
       runCommand: call,
       inspect: function () {
-        return Promise.all([api().docInspect({}), api().uiInspect({}).catch(function (e) { return { error: String(e && e.message || e) }; })]).then(function (r) {
+        // WordCraft starts on File › Home with no document, where document.inspect is an
+        // error: report that instead of failing the whole inspect.
+        var soft = function (p) { return Promise.resolve(p).catch(function (e) { return { error: String(e && e.message || e) }; }); };
+        return Promise.all([soft(api().docInspect({})), soft(api().uiInspect({}))]).then(function (r) {
           var ui = r[1] || {};
           return {
             document: r[0],
