@@ -566,7 +566,14 @@
         // request() resolves with the reply's result and rejects with its error.
         return Promise.resolve(api().request(command, params));
       }
-      return api().execute(command, params);
+      return Promise.resolve(api().execute(command, params)).then(function (r) {
+        // WordCraft opens on File › Home; a document the agent creates or opens is left
+        // behind that screen. Close it so the window shows the document, as a click would.
+        if (app === "wordcraft" && /^file\.(new|open|newFromTemplate)$/.test(command)) {
+          return Promise.resolve(api().execute("ui.backstage", { open: false })).then(function () { return r; }, function () { return r; });
+        }
+        return r;
+      });
     }
     return {
       app: app,
@@ -606,7 +613,9 @@
             throw new Error("screenshot failed (is the tab visible?): " + (e && (e.message || e)));
           });
         };
-        if (app === "wordcraft" && mode !== "window") {
+        // mode "screenshot" (or "window"): what the window shows. Otherwise WordCraft renders
+        // the document's page in the engine, which works even when the tab isn't drawing.
+        if (app === "wordcraft" && mode !== "screenshot" && mode !== "window") {
           return call("ui.render", { page: typeof mode === "number" ? mode : 1, scale: 1 }).then(normalizeImage).catch(shot);
         }
         return shot();
@@ -628,6 +637,7 @@
         var open = function (name, bytes) {
           if (!spec.openExt.test(name)) throw new Error(name + ": not a file type " + app + " opens");
           canvas.dispatchEvent(new CustomEvent(app + ":open", { detail: { name: name, bytes: bytes } }));
+          if (app === "wordcraft") setTimeout(function () { try { api().execute("ui.backstage", { open: false }); } catch (e) { /* ignore */ } }, 1500);
           return { ok: true, opened: name, bytes: bytes.length, note: "sent to the app; inspect shows the result once it loads" };
         };
         if (args.url) {
