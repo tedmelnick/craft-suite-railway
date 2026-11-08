@@ -15,7 +15,11 @@
     wav: "audio/wav", mp3: "audio/mpeg", m4a: "audio/mp4", aac: "audio/aac",
     ogg: "audio/ogg", flac: "audio/flac", mp4: "video/mp4", webm: "video/webm",
     mov: "video/quicktime", fcproj: "application/json", ecproj: "application/json",
-    pdf: "application/pdf", zip: "application/zip"
+    pdf: "application/pdf", zip: "application/zip",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    xlsm: "application/vnd.ms-excel.sheet.macroEnabled.12", ods: "application/vnd.oasis.opendocument.spreadsheet",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    odt: "application/vnd.oasis.opendocument.text", rtf: "application/rtf", tsv: "text/tab-separated-values"
   };
   function extOf(path) { var m = /\.([a-z0-9]+)$/i.exec(String(path || "")); return m ? m[1].toLowerCase() : ""; }
   function toBase64(bytes) {
@@ -471,6 +475,173 @@
       return open(args.name, window.CraftRelayFileKit.fromBase64(args.base64));
     }
   };
+
+  /* ---------------- GridCraft + WordCraft ----------------
+   * In-page API (upstream main, not yet in a release; built by
+   * .github/workflows/build-craft-web.yml): craft-web-api installs
+   * window.<app> = { request, execute, commands, docInspect, uiInspect,
+   * screenshot } over the app's control channel — the same one the desktop
+   * control server drives. Reference: docs/control-protocol.md in
+   * storytold/gridcraft and storytold/wordcraft.
+   *
+   * run_command: an engine command id (engine.commands) goes through
+   * execute(); a control-protocol method (sheet.read, cell.get, ui.render,
+   * ui.click, …) goes through request(), so both are reachable.
+   *
+   * Files: open and save are craft-web-host messages, not control methods.
+   * On these two app pages we run as the page host (data-host="page" on the
+   * canvas, set here before the wasm starts): saves and exports arrive as
+   * <app>:save events and go into a file table (and still download, as they
+   * would without us), and put_file sends an <app>:open event. */
+  var CRAFT_HOSTED = {
+    gridcraft: {
+      versions: ["0.16.0-main"],
+      control: ["window.list", "engine.journal", "document.inspect", "sheet.read", "cell.get",
+        "ui.inspect", "ui.object.select", "ui.click", "ui.drag", "ui.move", "ui.cell.click",
+        "ui.cell.drag", "ui.key", "ui.text", "ui.edit.begin", "ui.edit.text", "ui.edit.commit",
+        "ui.edit.cancel", "ui.ribbon", "ui.dialog", "ui.dialog.set", "ui.dialog.confirm",
+        "ui.dialog.cancel", "ui.screenshot", "ui.set", "ui.resize", "ui.focus"],
+      readOnly: ["window.list", "engine.journal", "document.inspect", "sheet.read", "cell.get", "ui.inspect", "ui.screenshot"],
+      openExt: /\.(xlsx|xlsm|xlsb|ods|csv|tsv)$/i
+    },
+    wordcraft: {
+      versions: ["0.15.1-main"],
+      control: ["document.inspect", "ui.inspect", "ui.click", "ui.clickText", "ui.move", "ui.drag",
+        "ui.press", "ui.release", "ui.wheel", "ui.key", "ui.text", "ui.screenshot", "ui.render",
+        "ui.parity", "ui.resize", "ui.focus"],
+      readOnly: ["document.inspect", "ui.inspect", "ui.screenshot", "ui.render", "ui.parity"],
+      openExt: /\.(docx|dotx|doc|odt|rtf|txt|md|html?)$/i
+    }
+  };
+
+  /* The page-host shim: only on a GridCraft / WordCraft page, and only once. */
+  var PAGE_APP = location.pathname.split("/").filter(Boolean)[0] || "";
+  var hostState = { files: [], dirty: false, lastError: null, ready: false };
+  function hostCanvas(app) { return document.getElementById(app + "_canvas"); }
+  function startPageHost(app) {
+    var canvas = hostCanvas(app);
+    if (!canvas || canvas.getAttribute("data-host")) return;
+    canvas.setAttribute("data-host", "page");
+    function on(kind, fn) { canvas.addEventListener(app + ":" + kind, function (ev) { try { fn(ev.detail || {}); } catch (e) { dbgHost(e); } }); }
+    on("ready", function () { hostState.ready = true; });
+    on("save", function (d) {
+      var raw = d.bytes, bytes = ArrayBuffer.isView(raw) ? new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength) : new Uint8Array(raw || 0);
+      var name = String(d.name || "document");
+      hostState.files = hostState.files.filter(function (f) { return f.path !== name; });
+      hostState.files.unshift({ path: name, size: bytes ? bytes.length : 0, kind: d.saveAs ? "save-as" : "save", savedAt: new Date().toISOString(), bytes: bytes });
+      hostState.files = hostState.files.slice(0, 20);
+      // Still hand the file to the user, as the app does when it isn't hosted.
+      try {
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([bytes], { type: MIME[extOf(name)] || "application/octet-stream" }));
+        a.download = name.split("/").pop();
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 60000);
+      } catch (e) { dbgHost(e); }
+      if (d.id) canvas.dispatchEvent(new CustomEvent(app + ":saved", { detail: { id: d.id } }));
+    });
+    on("dirty", function (d) { hostState.dirty = !!d.dirty; });
+    on("failed", function (d) { hostState.lastError = String(d.error || "failed"); });
+    on("handoff", function (d) {
+      hostState.lastError = (d.name || "a file") + " belongs to another app; it was downloaded instead";
+    });
+    // The hosted app leaves "unsaved changes?" to the host.
+    window.addEventListener("beforeunload", function (ev) { if (hostState.dirty) { ev.preventDefault(); ev.returnValue = ""; } });
+  }
+  function dbgHost(e) { try { console.log("[craft-relay] host:", e); } catch (x) { /* ignore */ } }
+  if (CRAFT_HOSTED[PAGE_APP]) {
+    // This script runs at the end of <body>, so the canvas is already there and the
+    // app's wasm (a module script) hasn't started: set data-host now, not at
+    // DOMContentLoaded, which would race the app's own startup.
+    if (hostCanvas(PAGE_APP)) startPageHost(PAGE_APP);
+    else document.addEventListener("DOMContentLoaded", function () { startPageHost(PAGE_APP); });
+  }
+
+  function hostedAdapter(app) {
+    var spec = CRAFT_HOSTED[app];
+    function api() { return window[app]; }
+    function call(command, params) {
+      params = params || {};
+      if (spec.control.indexOf(command) !== -1) {
+        // request() resolves with the reply's result and rejects with its error.
+        return Promise.resolve(api().request(command, params));
+      }
+      return api().execute(command, params);
+    }
+    return {
+      app: app,
+      versions: spec.versions,
+      detect: function () { return PAGE_APP === app && typeof api() === "object" && typeof api().execute === "function"; },
+      readOnlyCommands: spec.readOnly,
+      listCommands: function (filter) {
+        return Promise.resolve(api().commands()).then(function (cmds) {
+          var list = Array.isArray(cmds) ? cmds : (cmds && Array.isArray(cmds.commands) ? cmds.commands : []);
+          var f = (filter || "").toLowerCase();
+          var match = function (c) { return !f || JSON.stringify(c).toLowerCase().indexOf(f) !== -1; };
+          return {
+            commands: list.filter(match),
+            controlMethods: spec.control.filter(function (m) { return !f || m.indexOf(f) !== -1; }),
+            note: "commands run through engine.execute; controlMethods are control-protocol methods, also accepted by run_command"
+          };
+        });
+      },
+      runCommand: call,
+      inspect: function () {
+        return Promise.all([api().docInspect({}), api().uiInspect({}).catch(function (e) { return { error: String(e && e.message || e) }; })]).then(function (r) {
+          var ui = r[1] || {};
+          return {
+            document: r[0],
+            ui: { dialog: ui.dialog, tab: ui.tab || ui.ribbonTab, backstage: ui.backstage, windows: ui.windows || ui.documents, activeWindow: ui.activeWindow || ui.document },
+            host: { hosted: hostCanvas(app) && hostCanvas(app).getAttribute("data-host") === "page", ready: hostState.ready, dirty: hostState.dirty, lastError: hostState.lastError, files: hostState.files.length }
+          };
+        });
+      },
+      image: function (mode) {
+        // WordCraft can render a page in the engine (no GPU capture); otherwise screenshot the window.
+        var shot = function () {
+          return Promise.resolve(api().screenshot({})).then(normalizeImage, function (e) {
+            throw new Error("screenshot failed (is the tab visible?): " + (e && (e.message || e)));
+          });
+        };
+        if (app === "wordcraft" && mode !== "window") {
+          return call("ui.render", { page: typeof mode === "number" ? mode : 1, scale: 1 }).then(normalizeImage).catch(shot);
+        }
+        return shot();
+      },
+      listFiles: function () {
+        return hostState.files.map(function (f) { return { path: f.path, size: f.size, kind: f.kind, savedAt: f.savedAt }; });
+      },
+      file: function (path) {
+        for (var i = 0; i < hostState.files.length; i++) if (hostState.files[i].path === path) return hostState.files[i].bytes;
+        throw new Error(path + ": not in the file table (save or export it in the app first; list_files shows what's there)");
+      },
+      sendFile: function (path, url, method) {
+        var self = this;
+        return uploadBytes(function (p) { return Promise.resolve().then(function () { return self.file(p); }); }, path, url, method);
+      },
+      importFile: function (args) {
+        var canvas = hostCanvas(app);
+        if (!canvas || canvas.getAttribute("data-host") !== "page") return Promise.reject(new Error("the page host isn't active on this tab; reload the page"));
+        var open = function (name, bytes) {
+          if (!spec.openExt.test(name)) throw new Error(name + ": not a file type " + app + " opens");
+          canvas.dispatchEvent(new CustomEvent(app + ":open", { detail: { name: name, bytes: bytes } }));
+          return { ok: true, opened: name, bytes: bytes.length, note: "sent to the app; inspect shows the result once it loads" };
+        };
+        if (args.url) {
+          var name = args.name || args.url.split(/[?#]/)[0].split("/").pop() || "download";
+          return fetch(args.url, { mode: "cors" }).then(function (resp) {
+            if (!resp.ok) throw new Error(args.url + ": HTTP " + resp.status);
+            return resp.arrayBuffer();
+          }).then(function (buf) { return open(name, new Uint8Array(buf)); }, function (e) {
+            throw new Error("fetch failed (does the URL send Access-Control-Allow-Origin? " + (e && e.message ? e.message : e) + ")");
+          });
+        }
+        return Promise.resolve().then(function () { return open(args.name, fromBase64(args.base64)); });
+      }
+    };
+  }
+  adapters.gridcraft = hostedAdapter("gridcraft");
+  adapters.wordcraft = hostedAdapter("wordcraft");
 
   window.CraftRelayDenied = denied;
 })();

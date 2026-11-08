@@ -16,14 +16,14 @@ ARG EFFECTCRAFT_VERSION=0.6.0
 # drive them).
 ARG CADCRAFT_VERSION=0.17.0
 ARG DECKCRAFT_VERSION=0.15.0
-ARG GRIDCRAFT_VERSION=0.16.0
+ARG GRIDCRAFT_VERSION=0.16.0-main
 ARG SOUNDCRAFT_VERSION=0.17.0
 ARG CRAFT_ANYTHING_VERSION=0.3.0
 ARG DESIGNCRAFT_VERSION=0.17.0
 ARG FIGCRAFT_VERSION=0.15.0
 ARG MATERIALCRAFT_VERSION=0.1.0
 ARG TEXTURECRAFT_VERSION=0.3.0
-ARG WORDCRAFT_VERSION=0.15.0
+ARG WORDCRAFT_VERSION=0.15.1-main
 # The PhotoCraft and PdfCraft web builds that ship the in-page agent APIs
 # (window.photocraft / window.pdfcraft, incl. PdfCraft's form.* commands) are
 # published from derekcheungsa/craft-suite-railway, not upstream. FilmCraft's
@@ -33,6 +33,12 @@ ARG WORDCRAFT_VERSION=0.15.0
 ARG FILMCRAFT_URL=""
 ARG PHOTOCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/photocraft-web-0.5.0-main4-0c72d95/photocraft-web-0.5.0-main4.zip"
 ARG PDFCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/pdfcraft-web-0.5.0-main2-23f0675/pdfcraft-web-0.5.0-main2.zip"
+# GridCraft and WordCraft builds with the in-page agent API (window.gridcraft /
+# window.wordcraft) from upstream main, built by .github/workflows/build-craft-web.yml
+# and published as releases here. Clear these (and restore the upstream release
+# versions above) to go back to the plain upstream builds.
+ARG GRIDCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/gridcraft-web-0.16.0-main-2c58c76/gridcraft-web-0.16.0-main.zip"
+ARG WORDCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/wordcraft-web-0.15.1-main-4b0d399/wordcraft-web-0.15.1-main.zip"
 
 RUN apk add --no-cache curl unzip gzip
 WORKDIR /site
@@ -57,14 +63,14 @@ RUN set -eux; \
     fetch effectcraft    "${EFFECTCRAFT_VERSION}"; \
     fetch cadcraft       "${CADCRAFT_VERSION}"; \
     fetch deckcraft      "${DECKCRAFT_VERSION}"; \
-    fetch gridcraft      "${GRIDCRAFT_VERSION}"; \
+    fetch gridcraft      "${GRIDCRAFT_VERSION}" "${GRIDCRAFT_URL}"; \
     fetch soundcraft     "${SOUNDCRAFT_VERSION}"; \
     fetch craft-anything "${CRAFT_ANYTHING_VERSION}"; \
     fetch designcraft    "${DESIGNCRAFT_VERSION}"; \
     fetch figcraft       "${FIGCRAFT_VERSION}"; \
     fetch materialcraft  "${MATERIALCRAFT_VERSION}"; \
     fetch texturecraft   "${TEXTURECRAFT_VERSION}"; \
-    fetch wordcraft      "${WORDCRAFT_VERSION}"; \
+    fetch wordcraft      "${WORDCRAFT_VERSION}" "${WORDCRAFT_URL}"; \
     { printf '{'; cat /tmp/versions.part; printf '}\n'; } > /site/versions.json; \
     rm /tmp/versions.part
 
