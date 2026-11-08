@@ -8,6 +8,8 @@
 # What gets built is listed in .github/craft-web-builds.json. Pushing a change
 # to that file (or this workflow) builds every entry whose release doesn't
 # exist yet; "Run workflow" on the Actions tab does the same by hand.
+# An entry with "patch": true gets the agent API added first by
+# .github/craft-web-patches/patch.py (apps whose upstream main lacks it).
 name: Build Craft web apps
 
 on:
@@ -62,6 +64,16 @@ jobs:
           ref: ${{ matrix.ref }}
           path: upstream
           lfs: true
+
+      - name: Check out this repo (patches)
+        if: steps.name.outputs.exists != 'true' && matrix.patch
+        uses: actions/checkout@v4
+        with:
+          path: self
+
+      - name: Add the agent API (window.${{ matrix.app }})
+        if: steps.name.outputs.exists != 'true' && matrix.patch
+        run: python3 -I self/.github/craft-web-patches/patch.py "$APP" upstream
 
       - name: Rust + wasm target
         if: steps.name.outputs.exists != 'true'
