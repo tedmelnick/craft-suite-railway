@@ -1,0 +1,111 @@
+# Build Craft web apps from a pinned upstream commit and publish the zip as a
+# GitHub release in this repo, so the Dockerfile can fetch it (the *_URL args).
+#
+# Why: upstream main of GridCraft and WordCraft installs the in-page agent API
+# (window.gridcraft / window.wordcraft, via craft-web-api) but no release ships
+# it yet. When upstream does release it, drop the *_URL override instead.
+#
+# What gets built is listed in .github/craft-web-builds.json. Pushing a change
+# to that file (or this workflow) builds every entry whose release doesn't
+# exist yet; "Run workflow" on the Actions tab does the same by hand.
+name: Build Craft web apps
+
+on:
+  push:
+    paths:
+      - .github/craft-web-builds.json
+      - .github/workflows/build-craft-web.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.read.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: read
+        run: echo "matrix=$(jq -c '{include: .}' .github/craft-web-builds.json)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    env:
+      APP: ${{ matrix.app }}
+      REF: ${{ matrix.ref }}
+      LABEL: ${{ matrix.label }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Release name
+        id: name
+        run: |
+          short="${REF:0:7}"
+          echo "tag=${APP}-web-${LABEL}-${short}" >> "$GITHUB_OUTPUT"
+          echo "asset=${APP}-web-${LABEL}.zip" >> "$GITHUB_OUTPUT"
+          if gh release view "${APP}-web-${LABEL}-${short}" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check out upstream ${{ matrix.app }} at ${{ matrix.ref }}
+        if: steps.name.outputs.exists != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: storytold/${{ matrix.app }}
+          ref: ${{ matrix.ref }}
+          path: upstream
+          lfs: true
+
+      - name: Rust + wasm target
+        if: steps.name.outputs.exists != 'true'
+        run: |
+          rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown
+          rustup default stable
+
+      - name: Trunk
+        if: steps.name.outputs.exists != 'true'
+        run: |
+          curl -fsSL https://github.com/trunk-rs/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz \
+            | tar -xz -C /usr/local/bin trunk
+          trunk --version
+
+      - uses: Swatinem/rust-cache@v2
+        if: steps.name.outputs.exists != 'true'
+        with:
+          workspaces: upstream
+
+      - name: Build
+        if: steps.name.outputs.exists != 'true'
+        working-directory: upstream/apps/${{ matrix.app }}-web
+        run: trunk build --release --dist "$GITHUB_WORKSPACE/site" --public-url ./
+
+      - name: Check the build has the agent API
+        if: steps.name.outputs.exists != 'true'
+        run: |
+          # craft-web-api installs window.<app> from the wasm; its JS glue names the methods.
+          grep -rqE 'docInspect|uiInspect' site || { echo "no craft-web-api in the build"; exit 1; }
+          grep -Eq '(src|href)="/[^/]' site/index.html && { echo "root-absolute URLs in index.html"; exit 1; } || true
+
+      - name: Zip
+        if: steps.name.outputs.exists != 'true'
+        run: |
+          dir="${APP}-web-${LABEL}"
+          mkdir -p "pkg/$dir"
+          cp -R site/. "pkg/$dir/"
+          cp upstream/LICENSE-* upstream/NOTICE "pkg/$dir/" 2>/dev/null || true
+          (cd pkg && zip -qr9 "../${dir}.zip" "$dir")
+          ls -lh "${dir}.zip"
+
+      - name: Publish release
+        if: steps.name.outputs.exists != 'true'
+        run: |
+          gh release create "${{ steps.name.outputs.tag }}" "${{ steps.name.outputs.asset }}" \
+            -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "${APP} web ${LABEL} (${REF:0:7})" \
+            --notes "Web build of storytold/${APP}@${REF} (upstream main, with the window.${APP} agent API). Built by .github/workflows/build-craft-web.yml."
