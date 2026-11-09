@@ -71,7 +71,7 @@
   }
   .legend { color: var(--muted); font-size: 13px; margin-top: 12px; display: inline-flex; align-items: center; gap: 7px; }
   .card .like .note { text-transform: none; letter-spacing: 0; }
-  .card .no-agent { color: var(--muted); font-size: 12px; margin-top: 8px; opacity: .8; }
+  .card .no-agent { color: var(--muted); font-size: 12px; margin-top: 10px; display: flex; align-items: center; gap: 7px; }
   .card .like { color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: .8px; margin: 2px 0 8px; }
   .card .desc { color: var(--muted); font-size: 14px; }
   footer {
@@ -79,6 +79,9 @@
   }
   footer code { color: var(--text); background: var(--panel); border-radius: 4px; padding: 1px 5px; font-size: 11.5px; }
   footer a { color: var(--muted); }
+  footer details.versions summary { cursor: pointer; display: inline-block; padding: 2px 8px; border-radius: 6px; }
+  footer details.versions summary:hover { color: var(--text); background: var(--panel); }
+  footer details.versions p { margin-top: 8px; }
 
   /* --- Connect Claude setup guide: one panel, connected steps --- */
   .setup { width: 100%; max-width: 1160px; padding: 10px 24px 8px; }
@@ -197,7 +200,7 @@
 </section>
 
 <footer>
-  <p id="versions"></p>
+  <details class="versions"><summary>Versions</summary><p id="versions"></p></details>
   <p>Your work is saved <strong>in your browser</strong> (OPFS / IndexedDB), tied to this exact domain — no server-side storage, nothing leaves your device. Export anything you care about, and pick your final domain before you start. Chrome or Edge recommended (WebGPU).</p>
   <p>Apps and app icons by the <a href="https://github.com/storytold" rel="noopener">storytold</a> org · MIT / Apache-2.0 · not affiliated with Adobe</p>
 </footer>
@@ -214,7 +217,7 @@ const APPS = [
   { slug: "wordcraft",   like: "Word",        desc: "Word processor: styles, tables, track changes, mail merge, .docx." },
   { slug: "gridcraft",   like: "Excel",       desc: "Spreadsheets: 500+ functions, dynamic arrays, charts, pivot tables, conditional formatting, .xlsx." },
   { slug: "deckcraft",   like: "PowerPoint",  desc: "Slide decks: themes, layouts, charts, transitions, .pptx, full-screen presenting." },
-  { slug: "soundcraft",  name: "SoundCraft", like: "a DAW", likeNote: "(Digital Audio Workstation)", desc: "Digital audio workstation: multitrack editing, mixer, plugins, automation, MIDI." },
+  { slug: "soundcraft",  name: "SoundCraft", like: "a DAW", likeNote: "(Digital Audio Workstation)", desc: "Multitrack editing and mixing: plugins, automation, MIDI and notation, video sync, surround up to 9.1.6." },
   { slug: "cadcraft",    name: "CADCraft", like: "AutoCAD", desc: "CAD drafting: command line, object snaps, layers, dimensions, hatches, DXF." },
   { slug: "materialcraft", like: "Substance Designer", desc: "Node-graph PBR material builder with live 2D/3D preview and map export." },
   { slug: "texturecraft",  like: "Substance Painter",  desc: "3D texture painting: PBR layers, masks, baked mesh maps, smart materials." },
@@ -244,6 +247,8 @@ const NO_ICON = new Set(["craft-anything"]);
 // Apps Claude can drive through the relay (bridge/adapters.js): all but Craft Anything.
 const NO_AGENT = new Set(["craft-anything"]);
 const AGENT_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6 8h12v3a6 6 0 0 1-12 0z"/><path d="M12 17v4"/></svg>';
+// The same plug, struck through: an app Claude can't drive.
+const AGENT_ICON_OFF = AGENT_ICON.replace('</svg>', '<path d="M4 4l16 16"/></svg>');
 document.querySelectorAll("[data-agent-icon]").forEach(s => { s.innerHTML = AGENT_ICON; });
 const placed = new Set(CATEGORIES.flatMap(c => c.apps));
 const leftover = APPS.filter(a => !placed.has(a.slug)).map(a => a.slug);
@@ -283,7 +288,7 @@ for (const cat of CATEGORIES) {
     '</div>' +
     (a.like ? '<div class="like">like ' + a.like + (a.likeNote ? ' <span class="note">' + a.likeNote + '</span>' : '') + '</div>' : '') +
     '<div class="desc">' + a.desc + '</div>' +
-    (NO_AGENT.has(a.slug) ? '<div class="no-agent">Not available to Claude</div>' : '');
+    (NO_AGENT.has(a.slug) ? '<div class="no-agent"><span class="agent off" aria-hidden="true">' + AGENT_ICON_OFF + '</span>Not available to Claude</div>' : '');
   el.appendChild(card);
   }
 }
@@ -305,7 +310,7 @@ fetch("versions.json").then(r => r.json()).then(v => {
     }
   });
   document.getElementById("versions").textContent =
-    "Versions — " + Object.entries(v).map(([k, x]) => k + " " + x).join(" · ");
+    Object.entries(v).map(([k, x]) => k + " " + x).join(" · ");
 }).catch(() => {});
 
 // Setup guide: the connector URL is this deployment's own /relay/mcp (the
