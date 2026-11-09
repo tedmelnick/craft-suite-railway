@@ -118,4 +118,15 @@ the page shows a persistent indicator.
    in the in-app file table.
 5. Retrieve: `get_file` (small) or `send_file` to a URL you control (large).
 
+**Moving files between apps — the shelf.** Every app is served from the same
+origin, so their tabs share one browser store. `send_file` with url
+`https://shelf/<name>` (or `https://shelf/` to keep the file name) puts a file
+from one app's file table on the shelf; `put_file` with that url in another
+tab imports it there; `list_files` in any tab lists shelf entries (kind
+`shelf`); `get_file` reads one. Bytes stay in the browser — never on the relay
+or in the conversation. The bridge panel shows what's on the shelf and has a
+**Clear** button, plus an opt-in **"also download new exports to this PC"**
+checkbox (remembered per browser) that saves each new export via a normal
+browser download.
+
 See `docs/PRD-Craft-Relay.pdf` for the design document.

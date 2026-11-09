@@ -53,6 +53,116 @@
     renderLog();
   }
 
+  /* ---------- the shelf: files shared between app tabs ----------
+   * Every Craft Suite app is served from the same origin, so they share one
+   * IndexedDB. The shelf is a small store there: an agent puts a file from
+   * one app's file table on it (send_file to https://shelf/<name>) and takes
+   * it into another app (put_file with url https://shelf/<name>). Bytes stay
+   * in this browser — they never go to the relay or the conversation. The
+   * user can see and clear the shelf from the bridge panel. */
+  var SHELF_HOST = "shelf";
+  var shelfDbPromise = null;
+  function shelfDb() {
+    if (shelfDbPromise) return shelfDbPromise;
+    shelfDbPromise = new Promise(function (resolve, reject) {
+      var req = indexedDB.open("craft-shelf", 1);
+      req.onupgradeneeded = function () { req.result.createObjectStore("files", { keyPath: "name" }); };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { shelfDbPromise = null; reject(new Error("shelf storage unavailable: " + (req.error && req.error.message))); };
+    });
+    return shelfDbPromise;
+  }
+  function shelfTx(mode, fn) {
+    return shelfDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction("files", mode), store = tx.objectStore("files"), out;
+        var r = fn(store);
+        if (r) r.onsuccess = function () { out = r.result; };
+        tx.oncomplete = function () { resolve(out); };
+        tx.onerror = tx.onabort = function () { reject(new Error("shelf: " + (tx.error && tx.error.message))); };
+      });
+    });
+  }
+  /* "https://shelf/name.png" (or "shelf:name.png") -> "name.png"; anything else -> null */
+  function shelfName(url) {
+    if (typeof url !== "string") return null;
+    var m = /^shelf:\/*(.*)$/i.exec(url);
+    if (m) return decodeURIComponent(m[1]);
+    try {
+      var u = new URL(url);
+      if (u.hostname === SHELF_HOST) return decodeURIComponent(u.pathname.slice(1));
+    } catch (e) { /* not a URL */ }
+    return null;
+  }
+  function baseName(p) { return String(p || "file").split(/[\\/]/).pop() || "file"; }
+  function toBytes(b) {
+    if (b instanceof Error) throw b;
+    if (typeof b === "string") return new TextEncoder().encode(b);
+    if (b instanceof ArrayBuffer) return new Uint8Array(b);
+    if (b && b.buffer instanceof ArrayBuffer && !(b instanceof Uint8Array)) return new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
+    if (!b || typeof b.length !== "number") throw new Error("no bytes returned");
+    return b;
+  }
+  var shelf = {
+    put: function (name, bytes) {
+      bytes = toBytes(bytes);
+      var rec = { name: name, bytes: new Blob([bytes]), size: bytes.length, from: APP, savedAt: Date.now() };
+      return shelfTx("readwrite", function (s) { return s.put(rec); }).then(function () {
+        shelfChanged();
+        return { ok: true, status: 200, bytes: bytes.length, shelf: "https://" + SHELF_HOST + "/" + encodeURIComponent(name) };
+      });
+    },
+    get: function (name) {
+      return shelfTx("readonly", function (s) { return s.get(name); }).then(function (rec) {
+        if (!rec) throw new Error("shelf: no file named " + name + " (list_files shows what's on the shelf)");
+        return rec.bytes.arrayBuffer().then(function (buf) { return new Uint8Array(buf); });
+      });
+    },
+    list: function () {
+      return shelfTx("readonly", function (s) { return s.getAll(); }).then(function (all) {
+        return (all || []).map(function (r) {
+          return { path: "https://" + SHELF_HOST + "/" + encodeURIComponent(r.name), size: r.size, kind: "shelf", from: r.from, savedAt: r.savedAt };
+        });
+      });
+    },
+    clear: function () { return shelfTx("readwrite", function (s) { return s.clear(); }).then(shelfChanged); }
+  };
+  window.CraftShelf = { list: shelf.list, clear: shelf.clear };
+
+  /* ---------- optional: download every new export to this PC ---------- */
+  var AUTO_DL_KEY = "craftAutoDownload";
+  var autoDl = { on: false, seen: null, timer: null };
+  function saveBlob(name, bytes) {
+    var url = URL.createObjectURL(new Blob([bytes], { type: (window.CraftRelayFileKit && window.CraftRelayFileKit.mimeFor(name)) || "application/octet-stream" }));
+    var a = document.createElement("a");
+    a.href = url; a.download = baseName(name); a.style.display = "none";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+  }
+  function autoDlTick() {
+    var ad = state.adapter;
+    if (!autoDl.on || !ad || !ad.listFiles || !ad.file) return;
+    Promise.resolve(ad.listFiles()).then(function (files) {
+      files = (files || []).filter(function (f) { return f && f.path && f.kind !== "shelf" && f.kind !== "import" && f.kind !== "imported"; });
+      var key = function (f) { return f.path + "|" + (f.size || "") + "|" + (f.savedAt || ""); };
+      if (!autoDl.seen) { autoDl.seen = {}; files.forEach(function (f) { autoDl.seen[key(f)] = 1; }); return; }
+      files.forEach(function (f) {
+        var k = key(f);
+        if (autoDl.seen[k]) return;
+        autoDl.seen[k] = 1;
+        Promise.resolve(ad.file(f.path)).then(function (b) { saveBlob(f.path, toBytes(b)); pushLog({ t: Date.now(), tool: "downloaded " + baseName(f.path) }); },
+          function (e) { pushLog({ t: Date.now(), tool: "download " + baseName(f.path), err: (e && e.message || "failed").slice(0, 60) }); });
+      });
+    }).catch(function () { /* app not ready yet */ });
+  }
+  function setAutoDownload(on) {
+    autoDl.on = !!on;
+    autoDl.seen = null; // only exports made from now on are downloaded
+    try { localStorage.setItem(AUTO_DL_KEY, on ? "1" : "0"); } catch (e) { /* ignore */ }
+    if (autoDl.timer) { clearInterval(autoDl.timer); autoDl.timer = null; }
+    if (on) { autoDlTick(); autoDl.timer = setInterval(autoDlTick, 2000); }
+  }
+
   /* ---------- downscale images before sending (PRD: cap 1 MB) ---------- */
   function loadImage(dataUrl) {
     return new Promise(function (resolve, reject) {
@@ -216,7 +326,10 @@
       reply(m.id, false, "read-only mode is on: imports are blocked");
       return;
     }
-    if ((tool === "list_files" || tool === "get_file" || tool === "send_file") && !adapter.listFiles) {
+    var shelfIn = tool === "put_file" ? shelfName(args.url) : null;          // shelf -> app
+    var shelfOut = tool === "send_file" ? shelfName(args.url) : null;        // app -> shelf
+    var shelfRead = tool === "get_file" ? shelfName(args.path) : null;       // shelf -> conversation
+    if (((tool === "get_file" && shelfRead == null) || tool === "send_file") && !adapter.listFiles) {
       reply(m.id, false, "this app's adapter has no file API; use its own save/export commands");
       return;
     }
@@ -244,11 +357,28 @@
       else if (tool === "get_image") adapter.image(args.mode).then(function (img) {
         return downscaleImage(img.mime, img.base64, 0);
       }).then(done, fail);
-      else if (tool === "list_files") Promise.resolve(adapter.listFiles()).then(done, fail);
-      else if (tool === "get_file") Promise.resolve(adapter.file(args.path)).then(function (bytes) {
+      else if (tool === "list_files") Promise.all([
+        adapter.listFiles ? Promise.resolve(adapter.listFiles()) : Promise.resolve([]),
+        shelf.list().catch(function () { return []; })
+      ]).then(function (r) { return (r[0] || []).concat(r[1]); }).then(done, fail);
+      else if (tool === "get_file") Promise.resolve(shelfRead != null ? shelf.get(shelfRead) : adapter.file(args.path)).then(function (bytes) {
         var kit = window.CraftRelayFileKit;
-        return { base64: kit.toBase64(bytes), kind: kit.mimeFor(args.path) };
+        return { base64: kit.toBase64(toBytes(bytes)), kind: kit.mimeFor(shelfRead != null ? shelfRead : args.path) };
       }).then(done, fail);
+      else if (tool === "send_file" && shelfOut != null) Promise.resolve(adapter.file(args.path)).then(function (bytes) {
+        return shelf.put(shelfOut || baseName(args.path), bytes);
+      }).then(function (r) {
+        pushLog({ t: Date.now(), tool: "shelf ← " + baseName(args.path), ms: Math.round(performance.now() - t0) });
+        reply(m.id, true, r);
+      }, fail);
+      else if (tool === "put_file" && shelfIn != null) shelf.get(shelfIn).then(function (bytes) {
+        var name = args.name || baseName(shelfIn);
+        return adapter.importFile({ name: name, base64: window.CraftRelayFileKit.toBase64(bytes), url: null });
+      }).then(function (r) {
+        if (r instanceof Error) throw r;
+        pushLog({ t: Date.now(), tool: "shelf → " + baseName(shelfIn), ms: Math.round(performance.now() - t0) });
+        reply(m.id, true, r === undefined ? { ok: true, imported: args.name || baseName(shelfIn) } : r);
+      }, fail);
       else if (tool === "send_file") adapter.sendFile(args.path, args.url, args.method || "PUT").then(function (r) {
         pushLog({ t: Date.now(), tool: "send_file:" + (args.path || ""), ms: Math.round(performance.now() - t0) });
         reply(m.id, true, r);
@@ -305,6 +435,24 @@
     if (!state.log.length) logEl.appendChild(el("div", { text: "no commands yet", style: "color:#6a6d78;" }));
   }
 
+  var shelfEl;
+  function renderShelf() {
+    if (!shelfEl) return;
+    shelf.list().then(function (items) {
+      var total = items.reduce(function (n, f) { return n + (f.size || 0); }, 0);
+      shelfEl.firstChild.textContent = items.length
+        ? "Shelf: " + items.length + " file" + (items.length === 1 ? "" : "s") + " (" + (total / 1048576).toFixed(1) + " MB) — " + items.map(function (f) { return decodeURIComponent(f.path.split("/").pop()); }).join(", ")
+        : "Shelf: empty";
+      shelfEl.title = "Files any Craft app tab can pick up. They stay in this browser until you clear them.";
+    }, function () { shelfEl.firstChild.textContent = "Shelf: unavailable in this browser"; });
+  }
+  // Another tab changed the shelf: refresh now (BroadcastChannel) and whenever
+  // this tab is looked at again.
+  var shelfChannel = null;
+  try { shelfChannel = new BroadcastChannel("craft-shelf"); shelfChannel.onmessage = function () { renderShelf(); }; } catch (e) { /* older browser */ }
+  function shelfChanged() { renderShelf(); try { if (shelfChannel) shelfChannel.postMessage("changed"); } catch (e) { /* ignore */ } }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) renderShelf(); });
+
   function buildUI() {
     host = el("div", { style: "position:fixed;right:16px;bottom:16px;z-index:2147483646;" });
     document.body.appendChild(host);
@@ -327,6 +475,9 @@
       "button.act:disabled { opacity:.45; cursor:default; }",
       ".priv { font-size:11px; color:#9a9daa; background:#14151a; border-radius:8px; padding:8px; margin-bottom:8px; }",
       ".ro { display:flex; align-items:center; gap:6px; font-size:12px; margin-bottom:8px; color:#c9ccd6; }",
+      ".shelf { display:flex; align-items:center; gap:8px; font-size:11.5px; color:#c9ccd6; background:#14151a; border-radius:8px; padding:6px 8px; margin-bottom:8px; }",
+      ".shelf span { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }",
+      "button.mini { border:0; border-radius:6px; padding:3px 8px; font-size:11px; cursor:pointer; background:#2a2d38; color:#c9ccd6; }",
       ".log { background:#14151a; border-radius:8px; padding:8px; max-height:150px; overflow:auto; font:11px ui-monospace,monospace; color:#b9bcc7; }",
       ".log div { margin:1px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }"
     ].join("\n") });
@@ -373,7 +524,16 @@
     panel.appendChild(el("label", { text: "Bridge token" }));
     panel.appendChild(tokenInput);
     panel.appendChild(el("div", { class: "row" }, [connectBtn, disconnectBtn]));
-    panel.appendChild(el("label", { class: "ro" }, [roInput, document.createTextNode("read-only mode (block edits)")])); 
+    panel.appendChild(el("label", { class: "ro" }, [roInput, document.createTextNode("read-only mode (block edits)")]));
+    var dlInput = el("input", { type: "checkbox", onchange: function () { setAutoDownload(dlInput.checked); } });
+    try { if (localStorage.getItem(AUTO_DL_KEY) === "1") { dlInput.checked = true; setAutoDownload(true); } } catch (e) { /* ignore */ }
+    panel.appendChild(el("label", { class: "ro" }, [dlInput, document.createTextNode("also download new exports to this PC")]));
+    shelfEl = el("div", { class: "shelf" }, [
+      el("span", { text: "Shelf: …" }),
+      el("button", { class: "mini", text: "Clear", title: "Empty the shelf (files stay in each app's own file list)", onclick: function () { shelf.clear(); } })
+    ]);
+    panel.appendChild(shelfEl);
+    renderShelf();
     panel.appendChild(el("div", { class: "priv", text: "While connected, an agent can run commands in this tab and request previews of what you are editing. Nothing is stored on the relay. Disconnect at any time." }));
     logEl = el("div", { class: "log" });
     panel.appendChild(logEl);
