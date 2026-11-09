@@ -7,5 +7,6 @@
   {"app": "designcraft", "ref": "49f6b85cb911e29088269b3d4760857e70e5eff0", "label": "0.17.0-main-agent-fonts", "patch": true},
   {"app": "soundcraft", "ref": "ddeb7e791faa33db05277f3347ed9b91928b7733", "label": "0.17.0-main-agent-fonts", "patch": true},
   {"app": "materialcraft", "ref": "767dd658170b78059c195d3fb6f75b869e016cfd", "label": "0.1.3-main-agent-fonts", "patch": true},
-  {"app": "texturecraft", "ref": "4be75a2b11f129aacdd3adb8c99055f0d9be7b0f", "label": "0.3.1-main-agent-fonts", "patch": true}
+  {"app": "texturecraft", "ref": "4be75a2b11f129aacdd3adb8c99055f0d9be7b0f", "label": "0.3.1-main-agent-fonts", "patch": true},
+  {"app": "effectcraft", "ref": "v0.22.0", "label": "0.22.0", "mirror": true}
 ]

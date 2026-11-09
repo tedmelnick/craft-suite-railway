@@ -31,6 +31,9 @@ ARG WORDCRAFT_VERSION=0.15.1-main-fonts
 # the upstream build is used — they carry a "-main" version
 # suffix and a commit-tagged asset.
 ARG FILMCRAFT_URL=""
+# EffectCraft 0.22.0 is upstream's own release, unchanged, mirrored here by the build
+# workflow because GitHub kept answering 504 for the upstream asset during builds.
+ARG EFFECTCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/effectcraft-web-0.22.0-v0.22.0/effectcraft-web-0.22.0.zip"
 ARG PHOTOCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/photocraft-web-0.5.0-main4-0c72d95/photocraft-web-0.5.0-main4.zip"
 ARG PDFCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/pdfcraft-web-0.5.0-main2-23f0675/pdfcraft-web-0.5.0-main2.zip"
 # GridCraft and WordCraft builds with the in-page agent API (window.gridcraft /
@@ -70,7 +73,7 @@ RUN set -eux; \
     fetch pdfcraft       "${PDFCRAFT_VERSION}" "${PDFCRAFT_URL}"; \
     fetch vectorcraft    "${VECTORCRAFT_VERSION}"; \
     fetch filmcraft      "${FILMCRAFT_VERSION}" "${FILMCRAFT_URL}"; \
-    fetch effectcraft    "${EFFECTCRAFT_VERSION}"; \
+    fetch effectcraft    "${EFFECTCRAFT_VERSION}" "${EFFECTCRAFT_URL}"; \
     fetch cadcraft       "${CADCRAFT_VERSION}" "${CADCRAFT_URL}"; \
     fetch deckcraft      "${DECKCRAFT_VERSION}" "${DECKCRAFT_URL}"; \
     fetch gridcraft      "${GRIDCRAFT_VERSION}" "${GRIDCRAFT_URL}"; \

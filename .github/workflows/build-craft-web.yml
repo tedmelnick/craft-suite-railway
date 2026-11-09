@@ -10,6 +10,7 @@
 # exist yet; "Run workflow" on the Actions tab does the same by hand.
 # An entry with "patch": true gets the agent API added first by
 # .github/craft-web-patches/patch.py (apps whose upstream main lacks it).
+# An entry with "mirror": true copies upstream's own release zip (ref = its tag) unchanged.
 name: Build Craft web apps
 
 on:
@@ -57,7 +58,7 @@ jobs:
           fi
 
       - name: Check out upstream ${{ matrix.app }} at ${{ matrix.ref }}
-        if: steps.name.outputs.exists != 'true'
+        if: steps.name.outputs.exists != 'true' && !matrix.mirror
         uses: actions/checkout@v4
         with:
           repository: storytold/${{ matrix.app }}
@@ -66,17 +67,17 @@ jobs:
           lfs: true
 
       - name: Check out this repo (patches)
-        if: steps.name.outputs.exists != 'true' && matrix.patch
+        if: steps.name.outputs.exists != 'true' && !matrix.mirror && matrix.patch
         uses: actions/checkout@v4
         with:
           path: self
 
       - name: Add the agent API (window.${{ matrix.app }})
-        if: steps.name.outputs.exists != 'true' && matrix.patch
+        if: steps.name.outputs.exists != 'true' && !matrix.mirror && matrix.patch
         run: python3 -I self/.github/craft-web-patches/patch.py "$APP" upstream
 
       - name: Fonts (storytold/craft-fonts)
-        if: steps.name.outputs.exists != 'true'
+        if: steps.name.outputs.exists != 'true' && !matrix.mirror
         # The apps embed their fonts from this checkout at build time (CRAFT_FONTS_DIR),
         # as upstream's releases do; without it FigCraft has no fonts at all on the web.
         uses: actions/checkout@v4
@@ -86,39 +87,39 @@ jobs:
           path: craft-fonts
 
       - name: Rust + wasm target
-        if: steps.name.outputs.exists != 'true'
+        if: steps.name.outputs.exists != 'true' && !matrix.mirror
         run: |
           rustup toolchain install stable --profile minimal --target wasm32-unknown-unknown
           rustup default stable
 
       - name: Trunk
-        if: steps.name.outputs.exists != 'true'
+        if: steps.name.outputs.exists != 'true' && !matrix.mirror
         run: |
           curl -fsSL https://github.com/trunk-rs/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz \
             | tar -xz -C /usr/local/bin trunk
           trunk --version
 
       - uses: Swatinem/rust-cache@v2
-        if: steps.name.outputs.exists != 'true'
+        if: steps.name.outputs.exists != 'true' && !matrix.mirror
         with:
           workspaces: upstream
 
       - name: Build
-        if: steps.name.outputs.exists != 'true'
+        if: steps.name.outputs.exists != 'true' && !matrix.mirror
         working-directory: upstream/apps/${{ matrix.app }}-web
         env:
           CRAFT_FONTS_DIR: ${{ github.workspace }}/craft-fonts
         run: trunk build --release --dist "$GITHUB_WORKSPACE/site" --public-url ./
 
       - name: Check the build has the agent API
-        if: steps.name.outputs.exists != 'true'
+        if: steps.name.outputs.exists != 'true' && !matrix.mirror
         run: |
           # craft-web-api installs window.<app> from the wasm; its JS glue names the methods.
           grep -rqE 'docInspect|uiInspect' site || { echo "no craft-web-api in the build"; exit 1; }
           grep -Eq '(src|href)="/[^/]' site/index.html && { echo "root-absolute URLs in index.html"; exit 1; } || true
 
       - name: Zip
-        if: steps.name.outputs.exists != 'true'
+        if: steps.name.outputs.exists != 'true' && !matrix.mirror
         run: |
           dir="${APP}-web-${LABEL}"
           mkdir -p "pkg/$dir"
@@ -127,10 +128,24 @@ jobs:
           (cd pkg && zip -qr9 "../${dir}.zip" "$dir")
           ls -lh "${dir}.zip"
 
+      - name: Mirror the upstream release zip
+        # A "mirror" entry copies storytold/<app>'s own web release (tag = ref) here unchanged,
+        # so the Dockerfile doesn't depend on GitHub serving that asset at build time
+        # (it answered Railway's builder with 504 for EffectCraft's zips).
+        if: steps.name.outputs.exists != 'true' && matrix.mirror
+        run: |
+          url="https://github.com/storytold/${APP}/releases/download/${REF}/${APP}-web-${LABEL}.zip"
+          for i in $(seq 1 60); do
+            if curl -fsSL --connect-timeout 30 --max-time 600 -o "${APP}-web-${LABEL}.zip" "$url"; then break; fi
+            echo "attempt $i failed; retrying in 30 s"; sleep 30
+          done
+          unzip -l "${APP}-web-${LABEL}.zip" | grep -q " ${APP}-web-${LABEL}/index.html$" || { echo "not the expected web build"; exit 1; }
+          sha256sum "${APP}-web-${LABEL}.zip"
+
       - name: Publish release
         if: steps.name.outputs.exists != 'true'
         run: |
           gh release create "${{ steps.name.outputs.tag }}" "${{ steps.name.outputs.asset }}" \
             -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
             --title "${APP} web ${LABEL} (${REF:0:7})" \
-            --notes "Web build of storytold/${APP}@${REF} (upstream main, with the window.${APP} agent API). Built by .github/workflows/build-craft-web.yml."
+            --notes "$( [ "${{ matrix.mirror }}" = "true" ] && echo "Unmodified copy of storytold/${APP}'s ${REF} web release, mirrored by .github/workflows/build-craft-web.yml." || echo "Web build of storytold/${APP}@${REF} (upstream main, with the window.${APP} agent API). Built by .github/workflows/build-craft-web.yml." )"
