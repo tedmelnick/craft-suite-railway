@@ -73,6 +73,30 @@ set it to your suite origin(s), comma-separated, to tighten.
    paste the `BRIDGE_TOKEN` (relay URL is already `/relay`), Connect. Ask
    Claude: *"What tabs are connected?"*
 
+### Use a public suite with your own relay
+
+Someone else's Craft Suite site works fine for the apps themselves, but its relay
+belongs to its owner. To have **your** Claude drive the apps on a public site, run
+only the relay (no need to deploy the whole suite):
+
+1. Fork this repo on GitHub.
+2. In Railway: **New Project → Deploy from GitHub repo →** your fork. In the
+   service's **Settings**, set **Root Directory** to `server` (it has its own
+   Dockerfile).
+3. In **Variables**, add `MCP_TOKEN` (32+ random characters, e.g.
+   `openssl rand -base64 32`) and `BRIDGE_TOKEN` (16+ characters). Optionally set
+   `ALLOWED_ORIGINS` to the suite's address (e.g. `https://craft-suite.example`)
+   so only that site can open bridge sockets.
+4. **Settings → Networking → Generate Domain.** Your relay is now at
+   `https://<your-relay-domain>`.
+5. Claude Desktop → Settings → Connectors → Add custom connector: URL
+   `https://<your-relay-domain>/mcp`, header `Authorization: Bearer <MCP_TOKEN>`.
+6. On the suite site, open an app, click ⦿, set the relay address to
+   `https://<your-relay-domain>`, paste your `BRIDGE_TOKEN`, and Connect.
+
+Keep both tokens private: anyone with `MCP_TOKEN` can drive tabs connected to
+your relay, and anyone with `BRIDGE_TOKEN` can connect tabs to it.
+
 **Tools:** `list_sessions`, `list_commands`, `run_command`, `run_batch` (≤20),
 `inspect`, `get_image` (≤1 MB previews), `list_files`, `get_file` (small files
 as base64+sha256), `send_file` (upload a file from the app to a URL you supply —

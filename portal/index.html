@@ -101,6 +101,20 @@
   footer details.versions summary:focus-visible { outline: 2px solid #b7aefb; outline-offset: 2px; }
   footer details.versions p { margin-top: 8px; }
 
+  /* --- "Using this site": four short facts for visitors, under the title --- */
+  .visit { width: 100%; max-width: 1160px; padding: 14px 24px 0; }
+  .visit ul {
+    list-style: none; margin: 0; padding: 0; display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .visit li {
+    display: flex; gap: 11px; align-items: flex-start; background: var(--panel); border: 1px solid #2a2d38;
+    border-radius: 12px; padding: 12px 14px; color: var(--muted); font-size: 13px; line-height: 1.5;
+  }
+  .visit li b { color: var(--text); font-weight: 600; display: block; font-size: 13.5px; margin-bottom: 1px; }
+  .visit li svg { flex: none; width: 18px; height: 18px; margin-top: 2px; color: #b7aefb; stroke-width: 1.9; }
+  .visit a { color: #b7aefb; }
+
   /* --- Connect Claude setup guide: one panel, connected steps --- */
   .setup { width: 100%; max-width: 1160px; padding: 10px 24px 8px; }
   .setup-panel {
@@ -130,6 +144,7 @@
   .step ol, .step ul { margin: 2px 0 6px; padding-left: 16px; }
   .step li { margin-bottom: 3px; }
   .step b, .step strong { color: var(--text); font-weight: 600; }
+  .setup a { color: #b7aefb; }
   .tok {
     font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--accent);
     background: var(--accent-soft); border-radius: 20px; padding: 1px 8px; white-space: nowrap;
@@ -149,6 +164,8 @@
     background: #14151a; border: 1px solid #3a3d48; color: #e8e9ee; font-size: 12px; vertical-align: middle; margin: 0 2px;
   }
   .setup .fine { color: var(--muted); font-size: 12px; padding: 18px 2px 0; border-top: 1px solid #2a2d38; margin-top: 20px; }
+  .setup .fine.owner #mcp-url { white-space: normal; word-break: break-all; }
+  .setup .fine.owner { border-top: 0; padding-top: 0; margin-top: 8px; opacity: .85; }
   .dot-inline { display: none; width: 22px; height: 22px; border-radius: 50%; background: var(--panel); border: 2px solid var(--accent);
     color: var(--accent); font-size: 11px; font-weight: 700; align-items: center; justify-content: center; flex: none; }
   @media (max-width: 980px) {
@@ -165,6 +182,14 @@
   <p>Sixteen open-source, clean-room reimplementations of classic creative tools — pure Rust, compiled to WebAssembly, running entirely in your browser.</p>
   <p class="legend"><span class="agent" data-agent-icon></span>Every app works with Claude, except Craft Anything</p>
 </header>
+<section class="visit" aria-label="Using this site">
+  <ul>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span><b>Free, nothing to install</b>Click any app to open it. No account or sign-up.</span></li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span><b>Your files stay on your device</b>Work is saved in this browser only &mdash; never uploaded. Export anything you want to keep; clearing site data deletes it.</span></li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span><b>Use Chrome or Edge</b>The first open of an app can take a minute or two while it gets ready (EffectCraft is the slowest); after that it&rsquo;s quicker.</span></li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span><b>Want Claude to drive the apps?</b>Bring your own small relay &mdash; <a href="#setup">see the steps below</a>.</span></li>
+  </ul>
+</section>
 <main id="apps"></main>
 
 <section class="setup" id="setup">
@@ -172,34 +197,30 @@
     <div class="setup-head">
       <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div>
       <div>
-        <h2>Drive these apps from Claude</h2>
-        <p>A relay ships with the suite &mdash; four steps, about three minutes, then Claude can read and edit your documents right here.</p>
+        <h2>Drive these apps from your own Claude</h2>
+        <p>This site&rsquo;s Claude connection is private, so you run your own small relay &mdash; a tiny server that links Claude to the app open in your browser. About ten minutes, once.</p>
       </div>
     </div>
     <div class="steps">
       <div class="step">
         <div class="rail"><div class="dot">1</div></div>
-        <h3><span class="dot-inline">1</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>Get your two tokens</h3>
-        <p>Railway dashboard &rarr; <b>craft-relay</b> service &rarr; <b>Variables</b> tab:</p>
-        <ul>
-          <li><span class="tok">MCP_TOKEN</span> &mdash; Claude's key</li>
-          <li><span class="tok">BRIDGE_TOKEN</span> &mdash; your tab's key</li>
-        </ul>
-        <p>Generated fresh on deploy; reveal and copy.</p>
+        <h3><span class="dot-inline">1</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>Run your own relay</h3>
+        <p>Fork <a href="https://github.com/tedmelnick/craft-suite-railway" rel="noopener">this project on GitHub</a>, then on <b>Railway</b>: new service from your fork, <b>Root Directory</b> <span class="tok">server</span>.</p>
+        <p>Add two variables you make up: <span class="tok">MCP_TOKEN</span> (32+ random characters) and <span class="tok">BRIDGE_TOKEN</span> (16+), then <b>Generate Domain</b>. <a href="https://github.com/tedmelnick/craft-suite-railway#use-a-public-suite-with-your-own-relay" rel="noopener">Full guide</a>.</p>
       </div>
       <div class="step">
         <div class="rail"><div class="dot">2</div></div>
         <h3><span class="dot-inline">2</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 9h5M7 13h8"/><path d="M17 18v3M12 18v3M7 18v3"/></svg>Add the connector</h3>
         <p><b>Claude Desktop &rarr; Settings &rarr; Connectors &rarr; Add custom connector</b>:</p>
-        <div class="chip"><span class="val" id="mcp-url"></span><button type="button" data-copy="mcp-url">Copy</button></div>
+        <div class="chip"><span class="val">https://&lt;your-relay-domain&gt;/mcp</span><button type="button" data-copy-self="1">Copy</button></div>
         <div class="chip"><span class="val">Authorization: Bearer &lt;MCP_TOKEN&gt;</span><button type="button" data-copy-self="1">Copy</button></div>
-        <p>Swap in your real <span class="tok">MCP_TOKEN</span>.</p>
+        <p>Swap in your relay&rsquo;s domain and your <span class="tok">MCP_TOKEN</span>.</p>
       </div>
       <div class="step">
         <div class="rail"><div class="dot">3</div></div>
         <h3><span class="dot-inline">3</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><path d="M6 6l4.2 4.2M18 18l-4.2-4.2"/></svg>Connect a tab</h3>
-        <p>Open any app above, click the <span class="fabdemo">&#10686;</span> button in the bottom-right corner, paste the <span class="tok">BRIDGE_TOKEN</span> and press <b>Connect agent</b>.</p>
-        <p>The relay is already wired &mdash; nothing else to fill in. A persistent indicator shows while the bridge is live.</p>
+        <p>Open any app above, click the <span class="fabdemo">&#10686;</span> button in the bottom-right corner, enter your relay&rsquo;s address <span class="tok">https://&lt;your-relay-domain&gt;</span> and your <span class="tok">BRIDGE_TOKEN</span>, then press <b>Connect agent</b>.</p>
+        <p>A persistent indicator shows while the bridge is live.</p>
       </div>
       <div class="step">
         <div class="rail"><div class="dot">4</div></div>
@@ -213,13 +234,14 @@
         <p>Keep the app window <b>visible</b> &mdash; hidden tabs pause their frame loop.</p>
       </div>
     </div>
-    <p class="fine">Nothing connects until you click Connect in the page, and the bridge only ever drives the tab it lives in &mdash; a read-only toggle and Disconnect sit in the <span class="fabdemo">&#10686;</span> panel. Works with 15 of the 16 apps today — every app except Craft Anything.</p>
+    <p class="fine">Nothing connects until you click Connect in the page, and the bridge only ever drives the tab it lives in &mdash; a read-only toggle and Disconnect sit in the <span class="fabdemo">&#10686;</span> panel. Works with 15 of the 16 apps today — every app except Craft Anything. Keep both tokens to yourself: anyone with them can reach your relay.</p>
+    <p class="fine owner">Running this site? Its own relay is already wired in: the connector URL is <span class="tok" id="mcp-url"></span>, the relay address in the <span class="fabdemo">&#10686;</span> panel can stay <span class="tok">/relay</span>, and the tokens are in the <b>craft-relay</b> service&rsquo;s Variables on Railway.</p>
   </div>
 </section>
 
 <footer>
   <details class="versions"><summary title="Show every app's version">Show versions</summary><p id="versions"></p></details>
-  <p>Your work is saved <strong>in your browser</strong> (OPFS / IndexedDB), tied to this exact domain — no server-side storage, nothing leaves your device. Export anything you care about, and pick your final domain before you start. Chrome or Edge recommended (WebGPU).</p>
+  <p>Your work is saved <strong>in your browser</strong> (OPFS / IndexedDB) on this device and this site only — no server-side storage, nothing is uploaded. Export anything you care about. Chrome or Edge recommended (WebGPU).</p>
   <p>Apps and app icons by the <a href="https://github.com/storytold" rel="noopener">storytold</a> org · MIT / Apache-2.0 · not affiliated with Adobe</p>
 </footer>
 <script>
