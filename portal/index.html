@@ -37,9 +37,14 @@
   main { padding: 16px 24px 32px; max-width: 1160px; width: 100%; }
   .category { margin-top: 28px; }
   .category h2 {
-    font-size: 13px; font-weight: 650; text-transform: uppercase; letter-spacing: 1.2px;
-    color: var(--muted); margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #2a2d38;
+    font-size: 14.5px; font-weight: 650; text-transform: uppercase; letter-spacing: 1.3px;
+    color: var(--muted); margin: 0 0 12px; padding-bottom: 9px; border-bottom: 1px solid #2a2d38;
+    display: flex; align-items: center; gap: 10px;
   }
+  /* Category icons: original outline drawings in the heading's grey, in a fixed-width slot so
+     every heading's text starts at the same place (Video & Audio's icon is a little wider). */
+  .category h2 .cat-icon { flex: none; width: 25px; display: flex; align-items: center; }
+  .category h2 .cat-icon svg { height: 20px; width: auto; stroke-width: 1.9; }
   .category .grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px;
   }
@@ -238,13 +243,20 @@ const APPS = [
 ];
 // The page groups the apps into these categories, in this order; an app left
 // out of every category still shows, under "More", so none can go missing.
+const catIcon = (viewBox, paths) => '<svg viewBox="' + viewBox + '" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
 const CATEGORIES = [
-  { title: "Photo", apps: ["photocraft", "lightcraft"] },
-  { title: "Graphics & Design", apps: ["vectorcraft", "figcraft", "designcraft"] },
-  { title: "Video & Audio", apps: ["filmcraft", "effectcraft", "soundcraft"] },
-  { title: "Documents & Office", apps: ["wordcraft", "gridcraft", "deckcraft", "pdfcraft"] },
-  { title: "3D & CAD", apps: ["cadcraft", "materialcraft", "texturecraft"] },
-  { title: "Experimental", apps: ["craft-anything"] },
+  { title: "Photo", apps: ["photocraft", "lightcraft"],
+    icon: catIcon("0 0 24 24", '<path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.4"/>') },
+  { title: "Graphics & Design", apps: ["vectorcraft", "figcraft", "designcraft"],
+    icon: catIcon("0 0 24 24", '<path d="M12 3l5.5 7.5L12 21 6.5 10.5z"/><path d="M12 21v-7.5"/><circle cx="12" cy="11.6" r="1.6"/>') },
+  { title: "Video & Audio", apps: ["filmcraft", "effectcraft", "soundcraft"],
+    icon: catIcon("0 0 30 24", '<path d="M2.5 5.5l9.5 6.5-9.5 6.5z"/><path d="M15.5 16v-4a6 6 0 0 1 12 0v4"/><path d="M15.5 12.8h3v5.7h-3zM24.5 12.8h3v5.7h-3z"/>') },
+  { title: "Documents & Office", apps: ["wordcraft", "gridcraft", "deckcraft", "pdfcraft"],
+    icon: catIcon("0 0 24 24", '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 15.5h6M9 9h3"/>') },
+  { title: "3D & CAD", apps: ["cadcraft", "materialcraft", "texturecraft"],
+    icon: catIcon("0 0 24 24", '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/>') },
+  { title: "Experimental", apps: ["craft-anything"],
+    icon: catIcon("0 0 24 24", '<path d="M9.5 3h5M10.5 3v6L5 19.5a1 1 0 0 0 .9 1.5h12.2a1 1 0 0 0 .9-1.5L13.5 9V3"/><path d="M7.4 15h9.2"/>') },
 ];
 // Each app's colour for "Craft" in its name: the ArtCraft launcher's dark-theme ink
 // (craft-launcher crates/core/src/catalog.rs).
@@ -275,7 +287,8 @@ for (const cat of CATEGORIES) {
   const section = document.createElement("section");
   section.className = "category";
   const h2 = document.createElement("h2");
-  h2.textContent = cat.title;
+  h2.innerHTML = '<span class="cat-icon">' + (cat.icon || "") + '</span>';
+  h2.appendChild(document.createTextNode(cat.title));
   const el = document.createElement("div");
   el.className = "grid";
   section.append(h2, el);
