@@ -28,6 +28,12 @@
   }
   h1 span { color: var(--accent); }
   header p { color: var(--muted); margin: 0; }
+  /* A plain-text credit (the ArtCraft brand licence allows saying who makes the apps in plain
+     text; its name, wordmark and mark themselves are not used here). */
+  header p.credit {
+    font-family: "Archivo", system-ui, sans-serif; font-weight: 620; font-stretch: 118%;
+    font-size: 15px; letter-spacing: -.01em; color: #c9cad3; margin: 2px 0 14px;
+  }
   main { padding: 16px 24px 32px; max-width: 1160px; width: 100%; }
   .category { margin-top: 28px; }
   .category h2 {
@@ -134,6 +140,7 @@
 <body>
 <header>
   <h1>Craft <span>Suite</span></h1>
+  <p class="credit">Apps by the ArtCraft Team</p>
   <p>Sixteen open-source, clean-room reimplementations of classic creative tools — pure Rust, compiled to WebAssembly, running entirely in your browser.</p>
   <p class="legend"><span class="agent" data-agent-icon></span>Works with Claude</p>
 </header>
