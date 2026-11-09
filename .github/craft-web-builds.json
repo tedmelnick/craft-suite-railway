@@ -1,11 +1,11 @@
 [
-  {"app": "gridcraft", "ref": "2c58c769141f1d735623671c223548731669aa43", "label": "0.16.0-main"},
-  {"app": "wordcraft", "ref": "4b0d39959968a34e462cb53099e76fb108d0e96f", "label": "0.15.1-main"},
-  {"app": "figcraft", "ref": "8a7ebc2484a6d64d80a13c19c18ffb814325e347", "label": "0.15.0-main"},
-  {"app": "deckcraft", "ref": "c4674f24fb11eda1cdb440253c88fac686cbbafe", "label": "0.15.0-main"},
-  {"app": "cadcraft", "ref": "909af5e38946580dfdcc1f3fc2b23ff273149265", "label": "0.17.0-main"},
-  {"app": "designcraft", "ref": "49f6b85cb911e29088269b3d4760857e70e5eff0", "label": "0.17.0-main-agent", "patch": true},
-  {"app": "soundcraft", "ref": "ddeb7e791faa33db05277f3347ed9b91928b7733", "label": "0.17.0-main-agent", "patch": true},
-  {"app": "materialcraft", "ref": "767dd658170b78059c195d3fb6f75b869e016cfd", "label": "0.1.3-main-agent", "patch": true},
-  {"app": "texturecraft", "ref": "4be75a2b11f129aacdd3adb8c99055f0d9be7b0f", "label": "0.3.1-main-agent", "patch": true}
+  {"app": "gridcraft", "ref": "2c58c769141f1d735623671c223548731669aa43", "label": "0.16.0-main-fonts"},
+  {"app": "wordcraft", "ref": "4b0d39959968a34e462cb53099e76fb108d0e96f", "label": "0.15.1-main-fonts"},
+  {"app": "figcraft", "ref": "8a7ebc2484a6d64d80a13c19c18ffb814325e347", "label": "0.15.0-main-fonts"},
+  {"app": "deckcraft", "ref": "c4674f24fb11eda1cdb440253c88fac686cbbafe", "label": "0.15.0-main-fonts"},
+  {"app": "cadcraft", "ref": "909af5e38946580dfdcc1f3fc2b23ff273149265", "label": "0.17.0-main-fonts"},
+  {"app": "designcraft", "ref": "49f6b85cb911e29088269b3d4760857e70e5eff0", "label": "0.17.0-main-agent-fonts", "patch": true},
+  {"app": "soundcraft", "ref": "ddeb7e791faa33db05277f3347ed9b91928b7733", "label": "0.17.0-main-agent-fonts", "patch": true},
+  {"app": "materialcraft", "ref": "767dd658170b78059c195d3fb6f75b869e016cfd", "label": "0.1.3-main-agent-fonts", "patch": true},
+  {"app": "texturecraft", "ref": "4be75a2b11f129aacdd3adb8c99055f0d9be7b0f", "label": "0.3.1-main-agent-fonts", "patch": true}
 ]

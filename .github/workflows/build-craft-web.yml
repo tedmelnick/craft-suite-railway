@@ -75,6 +75,16 @@ jobs:
         if: steps.name.outputs.exists != 'true' && matrix.patch
         run: python3 -I self/.github/craft-web-patches/patch.py "$APP" upstream
 
+      - name: Fonts (storytold/craft-fonts)
+        if: steps.name.outputs.exists != 'true'
+        # The apps embed their fonts from this checkout at build time (CRAFT_FONTS_DIR),
+        # as upstream's releases do; without it FigCraft has no fonts at all on the web.
+        uses: actions/checkout@v4
+        with:
+          repository: storytold/craft-fonts
+          ref: aced4137c022f1f587624d48e81ec77e1914a9cc
+          path: craft-fonts
+
       - name: Rust + wasm target
         if: steps.name.outputs.exists != 'true'
         run: |
@@ -96,6 +106,8 @@ jobs:
       - name: Build
         if: steps.name.outputs.exists != 'true'
         working-directory: upstream/apps/${{ matrix.app }}-web
+        env:
+          CRAFT_FONTS_DIR: ${{ github.workspace }}/craft-fonts
         run: trunk build --release --dist "$GITHUB_WORKSPACE/site" --public-url ./
 
       - name: Check the build has the agent API
