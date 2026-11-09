@@ -79,8 +79,21 @@
   }
   footer code { color: var(--text); background: var(--panel); border-radius: 4px; padding: 1px 5px; font-size: 11.5px; }
   footer a { color: var(--muted); }
-  footer details.versions summary { cursor: pointer; display: inline-block; padding: 2px 8px; border-radius: 6px; }
-  footer details.versions summary:hover { color: var(--text); background: var(--panel); }
+  /* The Versions toggle looks like a button: an outlined pill with an arrow that turns open. */
+  footer details.versions summary {
+    cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+    color: #b7aefb; background: rgba(109,93,246,.08); border: 1px solid rgba(109,93,246,.35);
+    transition: background .15s, border-color .15s, color .15s; user-select: none;
+  }
+  footer details.versions summary::-webkit-details-marker { display: none; }
+  footer details.versions summary::after {
+    content: ""; width: 6px; height: 6px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor;
+    transform: rotate(-45deg); transition: transform .15s; margin-left: 1px;
+  }
+  footer details.versions[open] summary::after { transform: rotate(45deg) translate(-1px, -1px); }
+  footer details.versions summary:hover { color: #d6d0ff; background: rgba(109,93,246,.16); border-color: rgba(109,93,246,.6); }
+  footer details.versions summary:focus-visible { outline: 2px solid #b7aefb; outline-offset: 2px; }
   footer details.versions p { margin-top: 8px; }
 
   /* --- Connect Claude setup guide: one panel, connected steps --- */
@@ -200,7 +213,7 @@
 </section>
 
 <footer>
-  <details class="versions"><summary>Versions</summary><p id="versions"></p></details>
+  <details class="versions"><summary title="Show every app's version">Show versions</summary><p id="versions"></p></details>
   <p>Your work is saved <strong>in your browser</strong> (OPFS / IndexedDB), tied to this exact domain — no server-side storage, nothing leaves your device. Export anything you care about, and pick your final domain before you start. Chrome or Edge recommended (WebGPU).</p>
   <p>Apps and app icons by the <a href="https://github.com/storytold" rel="noopener">storytold</a> org · MIT / Apache-2.0 · not affiliated with Adobe</p>
 </footer>
@@ -312,6 +325,12 @@ fetch("versions.json").then(r => r.json()).then(v => {
   document.getElementById("versions").textContent =
     Object.entries(v).map(([k, x]) => k + " " + x).join(" · ");
 }).catch(() => {});
+
+// The Versions toggle says what a click will do.
+const versionsToggle = document.querySelector("footer details.versions");
+if (versionsToggle) versionsToggle.addEventListener("toggle", () => {
+  versionsToggle.querySelector("summary").textContent = versionsToggle.open ? "Hide versions" : "Show versions";
+});
 
 // Setup guide: the connector URL is this deployment's own /relay/mcp (the
 // same-origin proxy nginx ships with the suite), and copy buttons for chips.
