@@ -31,6 +31,8 @@ ARG WORDCRAFT_VERSION=0.15.1-main-fonts
 # Upstream's own releases, unchanged, mirrored here by the build workflow ("mirror"
 # entries in .github/craft-web-builds.json) because GitHub keeps answering Railway's
 # builder with 504 for storytold's release assets. Keep each in step with its *_VERSION.
+# GitHub's downloads are flaky at times, so each file is retried for ~10 minutes,
+# switching between a mirror and the original upstream copy.
 ARG LIGHTCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/lightcraft-web-0.18.0-v0.18.0/lightcraft-web-0.18.0.zip"
 ARG VECTORCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/vectorcraft-web-0.21.0-v0.21.0/vectorcraft-web-0.21.0.zip"
 ARG FILMCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/filmcraft-web-0.17.0-v0.17.0/filmcraft-web-0.17.0.zip"
@@ -61,10 +63,14 @@ WORKDIR /site
 RUN set -eux; \
     fetch() { \
       repo="$1"; ver="$2"; override="${3:-}"; \
-      if [ -n "$override" ]; then url="$override"; \
-      else url="https://github.com/storytold/${repo}/releases/download/v${ver}/${repo}-web-${ver}.zip"; fi; \
-      echo "fetching ${url}"; \
-      curl -fsSL --retry 8 --retry-delay 10 --retry-all-errors --connect-timeout 30 --max-time 600 -o /tmp/app.zip "${url}"; \
+      upstream="https://github.com/storytold/${repo}/releases/download/v${ver}/${repo}-web-${ver}.zip"; \
+      url="${override:-$upstream}"; alt="$url"; \
+      case "$override" in */${repo}-web-${ver}-v${ver}/*) alt="$upstream";; esac; \
+      n=0; \
+      until echo "fetching ${url}" && curl -fsSL --connect-timeout 30 --max-time 600 -o /tmp/app.zip "${url}"; do \
+        n=$((n+1)); [ "$n" -ge 40 ] && exit 1; \
+        t="$url"; url="$alt"; alt="$t"; sleep 15; \
+      done; \
       unzip -q /tmp/app.zip -d /tmp/app; \
       mv "/tmp/app/${repo}-web-${ver}" "/site/${repo}"; \
       rm -rf /tmp/app /tmp/app.zip; \
