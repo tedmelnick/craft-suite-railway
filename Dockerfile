@@ -59,7 +59,7 @@ RUN set -eux; \
       if [ -n "$override" ]; then url="$override"; \
       else url="https://github.com/storytold/${repo}/releases/download/v${ver}/${repo}-web-${ver}.zip"; fi; \
       echo "fetching ${url}"; \
-      curl -fsSL --retry 3 -o /tmp/app.zip "${url}"; \
+      curl -fsSL --retry 8 --retry-delay 10 --retry-all-errors --connect-timeout 30 --max-time 600 -o /tmp/app.zip "${url}"; \
       unzip -q /tmp/app.zip -d /tmp/app; \
       mv "/tmp/app/${repo}-web-${ver}" "/site/${repo}"; \
       rm -rf /tmp/app /tmp/app.zip; \
