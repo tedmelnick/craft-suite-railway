@@ -26,13 +26,15 @@ ARG TEXTURECRAFT_VERSION=0.3.1-main-agent-fonts
 ARG WORDCRAFT_VERSION=0.15.1-main-fonts
 # The PhotoCraft and PdfCraft web builds that ship the in-page agent APIs
 # (window.photocraft / window.pdfcraft, incl. PdfCraft's form.* commands) are
-# published from derekcheungsa/craft-suite-railway, not upstream. FilmCraft's
-# upstream releases now ship window.filmcraft, so FILMCRAFT_URL is empty and
-# the upstream build is used — they carry a "-main" version
-# suffix and a commit-tagged asset.
-ARG FILMCRAFT_URL=""
-# EffectCraft 0.22.0 is upstream's own release, unchanged, mirrored here by the build
-# workflow because GitHub kept answering 504 for the upstream asset during builds.
+# published from derekcheungsa/craft-suite-railway, not upstream — they carry a
+# "-main" version suffix and a commit-tagged asset (PHOTOCRAFT_URL, PDFCRAFT_URL below).
+# Upstream's own releases, unchanged, mirrored here by the build workflow ("mirror"
+# entries in .github/craft-web-builds.json) because GitHub keeps answering Railway's
+# builder with 504 for storytold's release assets. Keep each in step with its *_VERSION.
+ARG LIGHTCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/lightcraft-web-0.18.0-v0.18.0/lightcraft-web-0.18.0.zip"
+ARG VECTORCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/vectorcraft-web-0.21.0-v0.21.0/vectorcraft-web-0.21.0.zip"
+ARG FILMCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/filmcraft-web-0.17.0-v0.17.0/filmcraft-web-0.17.0.zip"
+ARG CRAFT_ANYTHING_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/craft-anything-web-0.3.0-v0.3.0/craft-anything-web-0.3.0.zip"
 ARG EFFECTCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/effectcraft-web-0.22.0-v0.22.0/effectcraft-web-0.22.0.zip"
 ARG PHOTOCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/photocraft-web-0.5.0-main4-0c72d95/photocraft-web-0.5.0-main4.zip"
 ARG PDFCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/pdfcraft-web-0.5.0-main2-23f0675/pdfcraft-web-0.5.0-main2.zip"
@@ -69,16 +71,16 @@ RUN set -eux; \
       printf '%s"%s":"v%s"' "${sep:-}" "$repo" "$ver" >> /tmp/versions.part; sep=","; \
     }; \
     fetch photocraft     "${PHOTOCRAFT_VERSION}" "${PHOTOCRAFT_URL}"; \
-    fetch lightcraft     "${LIGHTCRAFT_VERSION}"; \
+    fetch lightcraft     "${LIGHTCRAFT_VERSION}" "${LIGHTCRAFT_URL}"; \
     fetch pdfcraft       "${PDFCRAFT_VERSION}" "${PDFCRAFT_URL}"; \
-    fetch vectorcraft    "${VECTORCRAFT_VERSION}"; \
+    fetch vectorcraft    "${VECTORCRAFT_VERSION}" "${VECTORCRAFT_URL}"; \
     fetch filmcraft      "${FILMCRAFT_VERSION}" "${FILMCRAFT_URL}"; \
     fetch effectcraft    "${EFFECTCRAFT_VERSION}" "${EFFECTCRAFT_URL}"; \
     fetch cadcraft       "${CADCRAFT_VERSION}" "${CADCRAFT_URL}"; \
     fetch deckcraft      "${DECKCRAFT_VERSION}" "${DECKCRAFT_URL}"; \
     fetch gridcraft      "${GRIDCRAFT_VERSION}" "${GRIDCRAFT_URL}"; \
     fetch soundcraft     "${SOUNDCRAFT_VERSION}" "${SOUNDCRAFT_URL}"; \
-    fetch craft-anything "${CRAFT_ANYTHING_VERSION}"; \
+    fetch craft-anything "${CRAFT_ANYTHING_VERSION}" "${CRAFT_ANYTHING_URL}"; \
     fetch designcraft    "${DESIGNCRAFT_VERSION}" "${DESIGNCRAFT_URL}"; \
     fetch figcraft       "${FIGCRAFT_VERSION}" "${FIGCRAFT_URL}"; \
     fetch materialcraft  "${MATERIALCRAFT_VERSION}" "${MATERIALCRAFT_URL}"; \
