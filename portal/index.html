@@ -19,9 +19,14 @@
   h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -.5px; }
   h1 span { color: var(--accent); }
   header p { color: var(--muted); margin: 0; }
-  main {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 18px; padding: 32px 24px; max-width: 1160px; justify-content: center; width: 100%;
+  main { padding: 16px 24px 32px; max-width: 1160px; width: 100%; }
+  .category { margin-top: 28px; }
+  .category h2 {
+    font-size: 13px; font-weight: 650; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--muted); margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #2a2d38;
+  }
+  .category .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px;
   }
   a.card {
     display: block; background: var(--panel); border: 1px solid #2a2d38; border-radius: 14px;
@@ -181,10 +186,36 @@ const APPS = [
   { slug: "texturecraft",  like: "Substance Painter",  desc: "3D texture painting: PBR layers, masks, baked mesh maps, smart materials." },
   { slug: "craft-anything", name: "Craft Anything", like: "", desc: "Studies a target, has a coding agent build a new project, and refines it against the original." },
 ];
+// The page groups the apps into these categories, in this order; an app left
+// out of every category still shows, under "More", so none can go missing.
+const CATEGORIES = [
+  { title: "Photo", apps: ["photocraft", "lightcraft"] },
+  { title: "Graphics & Design", apps: ["vectorcraft", "figcraft", "designcraft"] },
+  { title: "Video & Audio", apps: ["filmcraft", "effectcraft", "soundcraft"] },
+  { title: "Documents & Office", apps: ["wordcraft", "gridcraft", "deckcraft", "pdfcraft"] },
+  { title: "3D & CAD", apps: ["cadcraft", "materialcraft", "texturecraft"] },
+  { title: "Experimental", apps: ["craft-anything"] },
+];
+const placed = new Set(CATEGORIES.flatMap(c => c.apps));
+const leftover = APPS.filter(a => !placed.has(a.slug)).map(a => a.slug);
+if (leftover.length) CATEGORIES.push({ title: "More", apps: leftover });
+const bySlug = Object.fromEntries(APPS.map(a => [a.slug, a]));
+
 // Every app ships an icon (portal/icons/<slug>.png, from its repo's
 // assets/app-icon/hicolor/128x128). A missing one falls back to the badge.
-const el = document.getElementById("apps");
-for (const a of APPS) {
+const main = document.getElementById("apps");
+for (const cat of CATEGORIES) {
+  const section = document.createElement("section");
+  section.className = "category";
+  const h2 = document.createElement("h2");
+  h2.textContent = cat.title;
+  const el = document.createElement("div");
+  el.className = "grid";
+  section.append(h2, el);
+  main.appendChild(section);
+  for (const slug of cat.apps) {
+  const a = bySlug[slug];
+  if (!a) continue;
   const card = document.createElement("a");
   card.className = "card";
   card.href = a.slug + "/";
@@ -199,6 +230,7 @@ for (const a of APPS) {
     (a.like ? '<div class="like">like ' + a.like + '</div>' : '') +
     '<div class="desc">' + a.desc + '</div>';
   el.appendChild(card);
+  }
 }
 fetch("versions.json").then(r => r.json()).then(v => {
   document.querySelectorAll("[data-ver]").forEach(s => { s.textContent = v[s.dataset.ver] || ""; });
