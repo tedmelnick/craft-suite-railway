@@ -26,7 +26,7 @@
     font-family: "Archivo", system-ui, sans-serif; font-weight: 620; font-stretch: 118%;
     font-size: 32px; margin: 0 0 6px; letter-spacing: -.03em;
   }
-  h1 span { color: var(--accent); }
+  h1 span { color: #b7aefb; }
   header p { color: var(--muted); margin: 0; }
   /* A plain-text credit (the ArtCraft brand licence allows saying who makes the apps in plain
      text; its name, wordmark and mark themselves are not used here). */
@@ -58,7 +58,7 @@
   .card .name .icon { width: 30px; height: 30px; border-radius: 7px; flex: none; }
   .card .ver {
     margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25;
-    font-size: 11px; color: var(--accent); background: var(--accent-soft);
+    font-size: 11px; color: #b7aefb; background: rgba(109,93,246,.07); border: 1px solid rgba(109,93,246,.18);
     border-radius: 10px; padding: 3px 10px; font-family: ui-monospace, monospace; text-align: right;
   }
   .card .ver:empty { display: none; }
@@ -69,9 +69,9 @@
     flex: none; display: inline-flex; align-items: center; justify-content: center;
     width: 22px; height: 22px; border-radius: 6px; background: rgba(232,116,42,.16); color: #E8742A;
   }
-  .card .agent { margin-left: 8px; }
   .legend { color: var(--muted); font-size: 13px; margin-top: 12px; display: inline-flex; align-items: center; gap: 7px; }
   .card .like .note { text-transform: none; letter-spacing: 0; }
+  .card .no-agent { color: var(--muted); font-size: 12px; margin-top: 8px; opacity: .8; }
   .card .like { color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: .8px; margin: 2px 0 8px; }
   .card .desc { color: var(--muted); font-size: 14px; }
   footer {
@@ -142,7 +142,7 @@
   <h1>Craft <span>Suite</span></h1>
   <p class="credit">Apps by the ArtCraft Team</p>
   <p>Sixteen open-source, clean-room reimplementations of classic creative tools — pure Rust, compiled to WebAssembly, running entirely in your browser.</p>
-  <p class="legend"><span class="agent" data-agent-icon></span>Works with Claude</p>
+  <p class="legend"><span class="agent" data-agent-icon></span>Every app works with Claude, except Craft Anything</p>
 </header>
 <main id="apps"></main>
 
@@ -209,10 +209,10 @@ const APPS = [
   { slug: "vectorcraft", like: "Illustrator", desc: "Vector graphics editor: paths, typography, effects, SVG and PDF export." },
   { slug: "filmcraft",   like: "Premiere",    desc: "Non-linear video editor: timeline, color grading, effects, in-house codecs." },
   { slug: "effectcraft", like: "After Effects", desc: "Motion graphics and compositing: layers, keyframes, expressions, render queue." },
-  { slug: "designcraft", like: "InDesign",    desc: "Desktop publishing and page layout." },
+  { slug: "designcraft", like: "InDesign",    desc: "Page layout: spreads, threaded text frames, styles, fine typography, IDML and PDF/X export." },
   { slug: "figcraft",    like: "Figma",       desc: "Interface design: frames, auto layout, components, variants, prototypes." },
   { slug: "wordcraft",   like: "Word",        desc: "Word processor: styles, tables, track changes, mail merge, .docx." },
-  { slug: "gridcraft",   like: "Excel",       desc: "Spreadsheets." },
+  { slug: "gridcraft",   like: "Excel",       desc: "Spreadsheets: 500+ functions, dynamic arrays, charts, pivot tables, conditional formatting, .xlsx." },
   { slug: "deckcraft",   like: "PowerPoint",  desc: "Slide decks: themes, layouts, charts, transitions, .pptx, full-screen presenting." },
   { slug: "soundcraft",  name: "SoundCraft", like: "a DAW", likeNote: "(Digital Audio Workstation)", desc: "Digital audio workstation: multitrack editing, mixer, plugins, automation, MIDI." },
   { slug: "cadcraft",    name: "CADCraft", like: "AutoCAD", desc: "CAD drafting: command line, object snaps, layers, dimensions, hatches, DXF." },
@@ -280,10 +280,10 @@ for (const cat of CATEGORIES) {
   card.innerHTML =
     '<div class="name">' + icon + wordmark +
     '<span class="ver" data-ver="' + a.slug + '"></span>' +
-    (NO_AGENT.has(a.slug) ? '' : '<span class="agent" title="Works with Claude" aria-label="Works with Claude">' + AGENT_ICON + '</span>') +
     '</div>' +
     (a.like ? '<div class="like">like ' + a.like + (a.likeNote ? ' <span class="note">' + a.likeNote + '</span>' : '') + '</div>' : '') +
-    '<div class="desc">' + a.desc + '</div>';
+    '<div class="desc">' + a.desc + '</div>' +
+    (NO_AGENT.has(a.slug) ? '<div class="no-agent">Not available to Claude</div>' : '');
   el.appendChild(card);
   }
 }
