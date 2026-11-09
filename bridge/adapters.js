@@ -121,13 +121,14 @@
   };
 
   /* ---------------- EffectCraft ----------------
-   * In-page API (v0.6, verified): window.effectcraft mirrors the desktop
+   * In-page API (v0.6; v0.22 keeps the same functions): window.effectcraft mirrors the desktop
    * control channel: execute, commands, inspect, screenshot, renderFrame.
    * window.effectcraft exists BEFORE the engine finishes booting, so guard
    * every call and fail fast with a retry hint instead of hanging. */
   adapters.effectcraft = {
     app: "effectcraft",
-    versions: ["0.6"],
+    // 0.22 fixes the Chrome-on-Windows load hang in 0.6 (storytold/effectcraft#1590).
+    versions: ["0.6", "0.22"],
     detect: function () { return typeof window.effectcraft === "object" && typeof window.effectcraft.execute === "function"; },
     readOnlyCommands: [],
     notReady: function () {

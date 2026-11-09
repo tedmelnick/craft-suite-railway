@@ -10,7 +10,7 @@ ARG LIGHTCRAFT_VERSION=0.18.0
 ARG PDFCRAFT_VERSION=0.5.0-main2
 ARG VECTORCRAFT_VERSION=0.21.0
 ARG FILMCRAFT_VERSION=0.17.0
-ARG EFFECTCRAFT_VERSION=0.6.0
+ARG EFFECTCRAFT_VERSION=0.22.0
 # Additional ArtCraft-launcher apps. All but Craft Anything are built with the
 # in-page agent API (see the *_URL args below); Craft Anything has no control
 # channel to drive, so it's the plain upstream build.
