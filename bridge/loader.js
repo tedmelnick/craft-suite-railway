@@ -135,6 +135,11 @@
   // Files the app downloaded by itself (some apps, e.g. EffectCraft, already
   // download finished renders): remember their names so we don't save them twice.
   var appDownloads = {};
+  // Files Claude imports (put_file, including from the shelf) are inputs, not
+  // exports: when one shows up in the file table, note it as seen instead of
+  // downloading it. A later save of the same file (new size) still downloads.
+  var importedNames = {};
+  function noteImport(name) { if (name) importedNames[baseName(name)] = Date.now(); }
   var ourClick = false;
   function noteAppDownload(a) {
     if (ourClick || !a || !a.hasAttribute || !a.hasAttribute("download")) return;
@@ -174,6 +179,11 @@
       files.forEach(function (f) {
         var s = sig(f);
         if (autoDl.seen[f.path] === s) { delete autoDl.pending[f.path]; return; }
+        var imp = importedNames[baseName(f.path)];
+        if (imp && autoDl.seen[f.path] === undefined && Date.now() - imp < 10 * 60 * 1000) {
+          delete importedNames[baseName(f.path)]; delete autoDl.pending[f.path];
+          autoDl.seen[f.path] = s; return;
+        }
         // A file still being written (a render in progress) changes size between
         // ticks: wait until it reads the same twice in a row, then save it once.
         if (autoDl.pending[f.path] !== s) { autoDl.pending[f.path] = s; return; }
@@ -404,6 +414,7 @@
       }, fail);
       else if (tool === "put_file" && shelfIn != null) shelf.get(shelfIn).then(function (bytes) {
         var name = args.name || baseName(shelfIn);
+        noteImport(name);
         return adapter.importFile({ name: name, base64: window.CraftRelayFileKit.toBase64(bytes), url: null });
       }).then(function (r) {
         if (r instanceof Error) throw r;
@@ -414,7 +425,7 @@
         pushLog({ t: Date.now(), tool: "send_file:" + (args.path || ""), ms: Math.round(performance.now() - t0) });
         reply(m.id, true, r);
       }, fail);
-      else if (tool === "put_file") Promise.resolve(adapter.importFile(args)).then(function (r) {
+      else if (tool === "put_file") Promise.resolve((noteImport(args.name || (args.url ? String(args.url).split(/[?#]/)[0].split("/").pop() : "")), adapter.importFile(args))).then(function (r) {
         if (r instanceof Error) throw r;
         return r;
       }).then(done, fail);
