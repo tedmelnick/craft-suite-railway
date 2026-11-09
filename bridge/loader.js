@@ -131,12 +131,36 @@
 
   /* ---------- optional: download every new export to this PC ---------- */
   var AUTO_DL_KEY = "craftAutoDownload";
-  var autoDl = { on: false, seen: null, timer: null };
+  var autoDl = { on: false, seen: null, timer: null, pending: {} };
+  // Files the app downloaded by itself (some apps, e.g. EffectCraft, already
+  // download finished renders): remember their names so we don't save them twice.
+  var appDownloads = {};
+  var ourClick = false;
+  function noteAppDownload(a) {
+    if (ourClick || !a || !a.hasAttribute || !a.hasAttribute("download")) return;
+    var n = baseName(a.getAttribute("download") || (a.href || "").split(/[?#]/)[0].split("/").pop() || "");
+    if (n) appDownloads[n] = Date.now();
+  }
+  try {
+    var origAnchorClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function () { noteAppDownload(this); return origAnchorClick.apply(this, arguments); };
+    document.addEventListener("click", function (e) {
+      var a = e.target && e.target.closest ? e.target.closest("a[download]") : null;
+      if (a) noteAppDownload(a);
+    }, true);
+  } catch (e) { /* ignore */ }
+  function appAlreadyDownloaded(name) {
+    var t = appDownloads[baseName(name)];
+    return !!t && Date.now() - t < 5 * 60 * 1000;
+  }
   function saveBlob(name, bytes) {
     var url = URL.createObjectURL(new Blob([bytes], { type: (window.CraftRelayFileKit && window.CraftRelayFileKit.mimeFor(name)) || "application/octet-stream" }));
     var a = document.createElement("a");
     a.href = url; a.download = baseName(name); a.style.display = "none";
-    document.body.appendChild(a); a.click(); a.remove();
+    document.body.appendChild(a);
+    ourClick = true;
+    try { a.click(); } finally { ourClick = false; }
+    a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
   }
   function autoDlTick() {
@@ -144,12 +168,18 @@
     if (!autoDl.on || !ad || !ad.listFiles || !ad.file) return;
     Promise.resolve(ad.listFiles()).then(function (files) {
       files = (files || []).filter(function (f) { return f && f.path && f.kind !== "shelf" && f.kind !== "import" && f.kind !== "imported"; });
-      var key = function (f) { return f.path + "|" + (f.size || "") + "|" + (f.savedAt || ""); };
-      if (!autoDl.seen) { autoDl.seen = {}; files.forEach(function (f) { autoDl.seen[key(f)] = 1; }); return; }
+      var sig = function (f) { return (f.size || "") + "|" + (f.savedAt || ""); };
+      // seen: path -> the signature last downloaded (or present when the box was ticked)
+      if (!autoDl.seen) { autoDl.seen = {}; files.forEach(function (f) { autoDl.seen[f.path] = sig(f); }); return; }
       files.forEach(function (f) {
-        var k = key(f);
-        if (autoDl.seen[k]) return;
-        autoDl.seen[k] = 1;
+        var s = sig(f);
+        if (autoDl.seen[f.path] === s) { delete autoDl.pending[f.path]; return; }
+        // A file still being written (a render in progress) changes size between
+        // ticks: wait until it reads the same twice in a row, then save it once.
+        if (autoDl.pending[f.path] !== s) { autoDl.pending[f.path] = s; return; }
+        delete autoDl.pending[f.path];
+        autoDl.seen[f.path] = s;
+        if (appAlreadyDownloaded(f.path)) { pushLog({ t: Date.now(), tool: "skipped " + baseName(f.path) + " (the app downloaded it)" }); return; }
         Promise.resolve(ad.file(f.path)).then(function (b) { saveBlob(f.path, toBytes(b)); pushLog({ t: Date.now(), tool: "downloaded " + baseName(f.path) }); },
           function (e) { pushLog({ t: Date.now(), tool: "download " + baseName(f.path), err: (e && e.message || "failed").slice(0, 60) }); });
       });
@@ -158,6 +188,7 @@
   function setAutoDownload(on) {
     autoDl.on = !!on;
     autoDl.seen = null; // only exports made from now on are downloaded
+    autoDl.pending = {};
     try { localStorage.setItem(AUTO_DL_KEY, on ? "1" : "0"); } catch (e) { /* ignore */ }
     if (autoDl.timer) { clearInterval(autoDl.timer); autoDl.timer = null; }
     if (on) { autoDlTick(); autoDl.timer = setInterval(autoDlTick, 2000); }
