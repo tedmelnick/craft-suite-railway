@@ -48,7 +48,7 @@
   .category .grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px;
   }
-  a.card {
+  .card {
     display: block; background: var(--panel); border: 1px solid #2a2d38; border-radius: 14px;
     padding: 20px 22px; text-decoration: none; color: var(--text);
     transition: background .15s, border-color .15s, transform .15s;
@@ -79,6 +79,14 @@
   .card .no-agent { color: var(--muted); font-size: 12px; margin-top: 10px; display: flex; align-items: center; gap: 7px; }
   .card .like { color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: .8px; margin: 2px 0 8px; }
   .card .desc { color: var(--muted); font-size: 14px; }
+  /* A "coming soon" card: an app with no browser release yet. Not a link; dashed, quieter. */
+  .card.soon { border-style: dashed; cursor: default; }
+  .card.soon:hover { background: var(--panel); border-color: #2a2d38; transform: none; }
+  .card.soon .icon { opacity: .85; }
+  .card .ver.soon-tag { font-family: inherit; font-size: 11px; font-weight: 600; letter-spacing: .3px; color: #e9d76a;
+    background: rgba(218,198,4,.08); border-color: rgba(218,198,4,.3); }
+  .card .soon-note { color: var(--muted); font-size: 12px; margin-top: 10px; display: flex; align-items: center; gap: 7px; }
+  .card .soon-note a { color: #b7aefb; }
   footer {
     color: var(--muted); font-size: 12.5px; text-align: center; padding: 24px; max-width: 680px;
   }
@@ -261,6 +269,9 @@ const APPS = [
   { slug: "cadcraft",    name: "CADCraft", like: "AutoCAD", desc: "CAD drafting: command line, object snaps, layers, dimensions, hatches, DXF." },
   { slug: "materialcraft", like: "Substance Designer", desc: "Node-graph PBR material builder with live 2D/3D preview and map export." },
   { slug: "texturecraft",  like: "Substance Painter",  desc: "3D texture painting: PBR layers, masks, baked mesh maps, smart materials." },
+  // No browser release yet: shown as a "coming soon" card until upstream ships a web build.
+  { slug: "anicraft", name: "AniCraft", like: "Animate", soon: true, repo: "https://github.com/storytold/anicraft",
+    desc: "2D vector animation: timeline, layers, keyframes, classic and shape tweens, onion skinning." },
   { slug: "craft-anything", name: "Craft Anything", like: "", desc: "Studies a target, has a coding agent build a new project, and refines it against the original." },
 ];
 // The page groups the apps into these categories, in this order; an app left
@@ -271,7 +282,7 @@ const CATEGORIES = [
     icon: catIcon("0 0 24 24", '<path d="M4 8h3l1.6-2.2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.4"/>') },
   { title: "Graphics & Design", apps: ["vectorcraft", "figcraft", "designcraft"],
     icon: catIcon("0 0 24 24", '<path d="M12 3l5.5 7.5L12 21 6.5 10.5z"/><path d="M12 21v-7.5"/><circle cx="12" cy="11.6" r="1.6"/>') },
-  { title: "Video & Audio", apps: ["filmcraft", "effectcraft", "soundcraft"],
+  { title: "Video & Audio", apps: ["filmcraft", "effectcraft", "soundcraft", "anicraft"],
     icon: catIcon("0 0 30 24", '<path d="M2.5 5.5l9.5 6.5-9.5 6.5z"/><path d="M15.5 16v-4a6 6 0 0 1 12 0v4"/><path d="M15.5 12.8h3v5.7h-3zM24.5 12.8h3v5.7h-3z"/>') },
   { title: "Documents & Office", apps: ["wordcraft", "gridcraft", "deckcraft", "pdfcraft"],
     icon: catIcon("0 0 24 24", '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 15.5h6M9 9h3"/>') },
@@ -287,6 +298,7 @@ const INK = {
   designcraft: "#A6E04A", filmcraft: "#B69CFF", effectcraft: "#FF7AB8", soundcraft: "#5FD0EE",
   wordcraft: "#8EA2FF", gridcraft: "#4FD68A", deckcraft: "#FFA060", pdfcraft: "#F23A62",
   cadcraft: "#7CC8FF", materialcraft: "#63C5D3", texturecraft: "#E58A4E", "craft-anything": "#74AAFF",
+  anicraft: "#E9D44A", // not in the launcher yet: the yellow of AniCraft's own icon, lightened
 };
 // Craft Anything's raven icon is an ArtCraft brand asset (not open source), so it isn't
 // bundled here; its card shows the letter badge.
@@ -318,9 +330,9 @@ for (const cat of CATEGORIES) {
   for (const slug of cat.apps) {
   const a = bySlug[slug];
   if (!a) continue;
-  const card = document.createElement("a");
-  card.className = "card";
-  card.href = a.slug + "/";
+  const card = document.createElement(a.soon ? "div" : "a");
+  card.className = a.soon ? "card soon" : "card";
+  if (!a.soon) card.href = a.slug + "/";
   const name = a.name || (a.slug.charAt(0).toUpperCase() + a.slug.slice(1).replace(/craft$/, "Craft"));
   // A letter badge stands in if the icon fails to load.
   const badge = '<span class="icon" style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:var(--accent,#7c5cff);color:#fff;font-weight:700">' + name.charAt(0) + '</span>';
@@ -332,10 +344,11 @@ for (const cat of CATEGORIES) {
     (prefix !== name ? '<span style="color:' + (INK[a.slug] || "var(--accent)") + '">Craft</span>' : '') + '</span>';
   card.innerHTML =
     '<div class="name">' + icon + wordmark +
-    '<span class="ver" data-ver="' + a.slug + '"></span>' +
+    (a.soon ? '<span class="ver soon-tag">Coming soon</span>' : '<span class="ver" data-ver="' + a.slug + '"></span>') +
     '</div>' +
     (a.like ? '<div class="like">like ' + a.like + (a.likeNote ? ' <span class="note">' + a.likeNote + '</span>' : '') + '</div>' : '') +
     '<div class="desc">' + a.desc + '</div>' +
+    (a.soon ? '<div class="soon-note">Browser version on the way &middot; <a href="' + a.repo + '" rel="noopener">desktop app</a></div>' : '') +
     (NO_AGENT.has(a.slug) ? '<div class="no-agent"><span class="agent off" aria-hidden="true">' + AGENT_ICON_OFF + '</span>Not available to Claude</div>' : '');
   el.appendChild(card);
   }
