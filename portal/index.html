@@ -30,6 +30,8 @@
   header p { color: var(--muted); margin: 0; }
   /* A plain-text credit (the ArtCraft brand licence allows saying who makes the apps in plain
      text; its name, wordmark and mark themselves are not used here). */
+  footer p.tm { font-size: 11.5px; opacity: .75; }
+  header p.indep { margin: -6px 0 14px; font-size: 12.5px; color: var(--muted); opacity: .85; }
   header p.credit {
     font-family: "Archivo", system-ui, sans-serif; font-weight: 620; font-stretch: 118%;
     font-size: 15px; letter-spacing: -.01em; color: #c9cad3; margin: 2px 0 14px;
@@ -204,6 +206,7 @@
 <header>
   <h1>Craft <span>Suite</span></h1>
   <p class="credit">Apps by the ArtCraft Team</p>
+  <p class="indep">An independent community project &mdash; not made, sponsored or endorsed by the ArtCraft team.</p>
   <p>Sixteen open-source, clean-room reimplementations of classic creative tools — pure Rust, compiled to WebAssembly, running entirely in your browser.</p>
   <p class="legend"><span class="agent" data-agent-icon></span>Every app works with Claude, except Craft Anything</p>
   <p class="guide-link"><a href="guide/">New here? Read the 5-minute guide <span aria-hidden="true">&rarr;</span></a></p>
@@ -241,7 +244,8 @@
 <footer>
   <details class="versions"><summary title="Show every app's version">Show versions</summary><p id="versions"></p></details>
   <p>Your work is saved <strong>in your browser</strong> (OPFS / IndexedDB) on this device and this site only — no server-side storage, nothing is uploaded. Export anything you care about. Chrome or Edge recommended (WebGPU).</p>
-  <p>Apps and app icons by the <a href="https://github.com/storytold" rel="noopener">storytold</a> org · MIT / Apache-2.0 · not affiliated with Adobe</p>
+  <p>Apps and app icons by the ArtCraft team (<a href="https://github.com/storytold" rel="noopener">storytold</a> on GitHub) · MIT / Apache-2.0. Craft Suite is an independent community project, not made, sponsored or endorsed by the ArtCraft team; some apps here are modified to add Claude control. ArtCraft is a trademark of the ArtCraft Team.</p>
+  <p class="tm">Adobe, Photoshop, Lightroom, Illustrator, InDesign, Acrobat, Premiere, After Effects, Animate and Substance are trademarks of Adobe Inc.; Microsoft, Excel, Word and PowerPoint of Microsoft Corporation; Figma of Figma, Inc.; AutoCAD of Autodesk, Inc. They are named only to describe what each app is similar to.</p>
 </footer>
 <script>
 const APPS = [

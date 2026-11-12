@@ -43,9 +43,16 @@ Local test: `docker build -t craft-suite . && docker run -p 8090:8080 craft-suit
   lightcraft adds SharedArrayBuffer; harmless today — all resources same-origin)
 - `/healthz` → 200 for healthchecks
 
-Apps are MIT/Apache-2.0; ArtCraft name/logos are trademarked — this deployment
- redistributes unmodified upstream release artifacts and is not affiliated
- with Adobe or ArtCraft.
+Apps are MIT/Apache-2.0 by the ArtCraft team (github.com/storytold). This is an
+independent community project, not made, sponsored or endorsed by the ArtCraft
+team. Most apps are their unmodified official web releases; DesignCraft,
+SoundCraft, MaterialCraft and TextureCraft are built from upstream source with a
+small patch adding the in-page Claude API (.github/craft-web-patches), and
+PhotoCraft and PdfCraft are custom builds with Claude APIs (first published in
+derekcheungsa/craft-suite-railway). The ArtCraft name, wordmark and logos are
+trademarks of the ArtCraft Team (see docs/brand/LICENSE-brand.txt in any of
+their repositories). Adobe, Microsoft, Figma and Autodesk product names are
+trademarks of their owners, used only to describe similar apps.
 
 ## Craft Relay — drive the apps from Claude Desktop (MCP)
 
