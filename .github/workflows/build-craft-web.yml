@@ -131,10 +131,13 @@ jobs:
       - name: Mirror the upstream release zip
         # A "mirror" entry copies storytold/<app>'s own web release (tag = ref) here unchanged,
         # so the Dockerfile doesn't depend on GitHub serving that asset at build time
-        # (it answered Railway's builder with 504 for EffectCraft's zips).
+        # (it answered Railway's builder with 504 for EffectCraft's zips). An entry with a
+        # "url" copies that zip instead (builds first published in another repository).
         if: steps.name.outputs.exists != 'true' && matrix.mirror
+        env:
+          SRC_URL: ${{ matrix.url }}
         run: |
-          url="https://github.com/storytold/${APP}/releases/download/${REF}/${APP}-web-${LABEL}.zip"
+          url="${SRC_URL:-https://github.com/storytold/${APP}/releases/download/${REF}/${APP}-web-${LABEL}.zip}"
           for i in $(seq 1 60); do
             if curl -fsSL --connect-timeout 30 --max-time 600 -o "${APP}-web-${LABEL}.zip" "$url"; then break; fi
             echo "attempt $i failed; retrying in 30 s"; sleep 30
@@ -144,8 +147,18 @@ jobs:
 
       - name: Publish release
         if: steps.name.outputs.exists != 'true'
+        env:
+          SRC_URL: ${{ matrix.url }}
+          MIRROR: ${{ matrix.mirror }}
         run: |
+          if [ -n "$SRC_URL" ]; then
+            notes="Unmodified copy of $SRC_URL, mirrored by .github/workflows/build-craft-web.yml."
+          elif [ "$MIRROR" = "true" ]; then
+            notes="Unmodified copy of storytold/${APP}'s ${REF} web release, mirrored by .github/workflows/build-craft-web.yml."
+          else
+            notes="Web build of storytold/${APP}@${REF} (upstream main, with the window.${APP} agent API). Built by .github/workflows/build-craft-web.yml."
+          fi
           gh release create "${{ steps.name.outputs.tag }}" "${{ steps.name.outputs.asset }}" \
             -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
             --title "${APP} web ${LABEL} (${REF:0:7})" \
-            --notes "$( [ "${{ matrix.mirror }}" = "true" ] && echo "Unmodified copy of storytold/${APP}'s ${REF} web release, mirrored by .github/workflows/build-craft-web.yml." || echo "Web build of storytold/${APP}@${REF} (upstream main, with the window.${APP} agent API). Built by .github/workflows/build-craft-web.yml." )"
+            --notes "$notes"
