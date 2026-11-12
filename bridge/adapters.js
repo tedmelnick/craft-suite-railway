@@ -501,7 +501,7 @@
   var UI_COMMON = ["ui.inspect", "ui.click", "ui.drag", "ui.move", "ui.key", "ui.text", "ui.screenshot", "ui.set", "ui.resize", "ui.focus"];
   var CRAFT_HOSTED = {
     gridcraft: {
-      versions: ["0.16.0-main"],
+      versions: ["0.16.0-main", "0.19"],
       control: ["window.list", "engine.journal", "document.inspect", "sheet.read", "cell.get",
         "ui.inspect", "ui.object.select", "ui.click", "ui.drag", "ui.move", "ui.cell.click",
         "ui.cell.drag", "ui.key", "ui.text", "ui.edit.begin", "ui.edit.text", "ui.edit.commit",
@@ -511,7 +511,7 @@
       openExt: /\.(xlsx|xlsm|xlsb|ods|csv|tsv)$/i
     },
     wordcraft: {
-      versions: ["0.15.1-main"],
+      versions: ["0.15.1-main", "0.18"],
       control: ["document.inspect", "ui.inspect", "ui.click", "ui.clickText", "ui.move", "ui.drag",
         "ui.press", "ui.release", "ui.wheel", "ui.key", "ui.text", "ui.screenshot", "ui.render",
         "ui.parity", "ui.resize", "ui.focus"],
@@ -524,7 +524,7 @@
       openCommands: /^file\.(new|open|newFromTemplate)$/
     },
     figcraft: {
-      versions: ["0.15.0-main"],
+      versions: ["0.15.0-main", "0.18"],
       // FigCraft installs window.figcraft only with ?control in the page URL (opt-in).
       urlFlag: "control",
       control: UI_COMMON.concat(["document.inspect", "doc.list", "ui.input", "ui.pointer", "ui.menu.invoke", "ui.render", "command.batch"]),
@@ -532,14 +532,14 @@
       openExt: /\.(fig|figcraft|svg|png|jpe?g)$/i
     },
     deckcraft: {
-      versions: ["0.15.0-main"],
+      versions: ["0.15.0-main", "0.18"],
       control: UI_COMMON.concat(["document.inspect", "app.open", "app.save", "app.export", "show.start", "show.end",
         "slide.actions", "ui.dialog.open", "ui.dialog.close", "ui.ime", "ui.menu.invoke", "ui.pointer", "ui.render", "ui.tool.select"]),
       readOnly: ["document.inspect", "ui.inspect", "ui.screenshot", "ui.render"],
       openExt: /\.(pptx|potx|odp)$/i
     },
     cadcraft: {
-      versions: ["0.17.0-main"],
+      versions: ["0.17.0-main", "0.20"],
       inspectMethod: "drawing.inspect",
       control: UI_COMMON.concat(["drawing.inspect", "app.open", "app.save", "cmdline.input", "cmdline.key", "cmdline.script",
         "cmdline.state", "control.methods", "ui.elements", "ui.menu.invoke", "ui.menu.list", "ui.pointer", "ui.render"]),

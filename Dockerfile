@@ -11,19 +11,18 @@ ARG PDFCRAFT_VERSION=0.5.0-main2
 ARG VECTORCRAFT_VERSION=0.21.0
 ARG FILMCRAFT_VERSION=0.17.0
 ARG EFFECTCRAFT_VERSION=0.22.0
-# Additional ArtCraft-launcher apps. All but Craft Anything are built with the
-# in-page agent API (see the *_URL args below); Craft Anything has no control
-# channel to drive, so it's the plain upstream build.
-ARG CADCRAFT_VERSION=0.17.0-main-fonts
-ARG DECKCRAFT_VERSION=0.15.0-main-fonts
-ARG GRIDCRAFT_VERSION=0.16.0-main-fonts
+# Additional ArtCraft-launcher apps. All but Craft Anything have the in-page agent API
+# (see the *_URL args below); Craft Anything has no control channel to drive.
+ARG CADCRAFT_VERSION=0.20.1
+ARG DECKCRAFT_VERSION=0.18.1
+ARG GRIDCRAFT_VERSION=0.19.1
 ARG SOUNDCRAFT_VERSION=0.17.0-main-agent-fonts
 ARG CRAFT_ANYTHING_VERSION=0.3.0
 ARG DESIGNCRAFT_VERSION=0.17.0-main-agent-fonts
-ARG FIGCRAFT_VERSION=0.15.0-main-fonts
+ARG FIGCRAFT_VERSION=0.18.1
 ARG MATERIALCRAFT_VERSION=0.1.3-main-agent-fonts
 ARG TEXTURECRAFT_VERSION=0.3.1-main-agent-fonts
-ARG WORDCRAFT_VERSION=0.15.1-main-fonts
+ARG WORDCRAFT_VERSION=0.18.1
 # The PhotoCraft and PdfCraft web builds that ship the in-page agent APIs
 # (window.photocraft / window.pdfcraft, incl. PdfCraft's form.* commands) are
 # published from derekcheungsa/craft-suite-railway, not upstream — they carry a
@@ -37,21 +36,18 @@ ARG LIGHTCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/d
 ARG VECTORCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/vectorcraft-web-0.21.0-v0.21.0/vectorcraft-web-0.21.0.zip"
 ARG FILMCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/filmcraft-web-0.17.0-v0.17.0/filmcraft-web-0.17.0.zip"
 ARG CRAFT_ANYTHING_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/craft-anything-web-0.3.0-v0.3.0/craft-anything-web-0.3.0.zip"
+ARG GRIDCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/gridcraft-web-0.19.1-v0.19.1/gridcraft-web-0.19.1.zip"
+ARG WORDCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/wordcraft-web-0.18.1-v0.18.1/wordcraft-web-0.18.1.zip"
+ARG FIGCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/figcraft-web-0.18.1-v0.18.1/figcraft-web-0.18.1.zip"
+ARG DECKCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/deckcraft-web-0.18.1-v0.18.1/deckcraft-web-0.18.1.zip"
+ARG CADCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/cadcraft-web-0.20.1-v0.20.1/cadcraft-web-0.20.1.zip"
 ARG EFFECTCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/effectcraft-web-0.22.0-v0.22.0/effectcraft-web-0.22.0.zip"
 ARG PHOTOCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/photocraft-web-0.5.0-main4-0c72d95/photocraft-web-0.5.0-main4.zip"
 ARG PDFCRAFT_URL="https://github.com/derekcheungsa/craft-suite-railway/releases/download/pdfcraft-web-0.5.0-main2-23f0675/pdfcraft-web-0.5.0-main2.zip"
-# GridCraft and WordCraft builds with the in-page agent API (window.gridcraft /
-# window.wordcraft) from upstream main, built by .github/workflows/build-craft-web.yml
-# and published as releases here. Clear these (and restore the upstream release
-# versions above) to go back to the plain upstream builds.
-ARG GRIDCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/gridcraft-web-0.16.0-main-fonts-2c58c76/gridcraft-web-0.16.0-main-fonts.zip"
-ARG WORDCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/wordcraft-web-0.15.1-main-fonts-4b0d399/wordcraft-web-0.15.1-main-fonts.zip"
-# Builds with the agent API from upstream main (FigCraft, DeckCraft, CADCraft) or
-# upstream main plus .github/craft-web-patches (DesignCraft, SoundCraft,
-# MaterialCraft, TextureCraft), published as releases here by the same workflow.
-ARG FIGCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/figcraft-web-0.15.0-main-fonts-8a7ebc2/figcraft-web-0.15.0-main-fonts.zip"
-ARG DECKCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/deckcraft-web-0.15.0-main-fonts-c4674f2/deckcraft-web-0.15.0-main-fonts.zip"
-ARG CADCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/cadcraft-web-0.17.0-main-fonts-909af5e/cadcraft-web-0.17.0-main-fonts.zip"
+# GridCraft, WordCraft, FigCraft, DeckCraft and CADCraft releases ship the in-page agent
+# API (window.<app> from craft-web-api) themselves, so they are mirrored above.
+# DesignCraft, SoundCraft, MaterialCraft and TextureCraft releases don't yet: these are
+# upstream main plus .github/craft-web-patches, built by .github/workflows/build-craft-web.yml.
 ARG DESIGNCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/designcraft-web-0.17.0-main-agent-fonts-49f6b85/designcraft-web-0.17.0-main-agent-fonts.zip"
 ARG SOUNDCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/soundcraft-web-0.17.0-main-agent-fonts-ddeb7e7/soundcraft-web-0.17.0-main-agent-fonts.zip"
 ARG MATERIALCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/materialcraft-web-0.1.3-main-agent-fonts-767dd65/materialcraft-web-0.1.3-main-agent-fonts.zip"
