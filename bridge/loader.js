@@ -289,6 +289,7 @@
       if (m.type === "welcome") {
         state.sessionId = m.sessionId;
         setStatus("connected");
+        showRelayNotice(typeof m.relayVersion === "number" ? m.relayVersion : 1);
         setNote("session " + m.sessionId + (state.versionOk === false ? " · adapter version mismatch (tools disabled)" : ""));
       } else if (m.type === "request") {
         handleRequest(m);
@@ -447,6 +448,30 @@
     return step(0);
   }
 
+  /* ---------- Relay version check ----------
+   * The relay sends relayVersion in its welcome (server/src/index.ts, RELAY_VERSION);
+   * relays from before that send none, which counts as 1. This file is served by
+   * the site, so it always knows the newest relay. Bump RELAY_LATEST with every
+   * relay change; raise RELAY_REQUIRED only when an older relay would actually fail. */
+  var RELAY_LATEST = 2, RELAY_REQUIRED = 1;
+  var relayEl, fabEl;
+  function showRelayNotice(v) {
+    if (!relayEl) return;
+    var level = v < RELAY_REQUIRED ? "required" : v < RELAY_LATEST ? "available" : "";
+    relayEl.className = "relay " + level;
+    relayEl.style.display = level ? "block" : "none";
+    if (fabEl) fabEl.classList.toggle("flag", !!level);
+    if (!level) return;
+    relayEl.textContent = "";
+    relayEl.appendChild(el("b", { text: level === "required" ? "Your relay needs an update" : "Relay update available" }));
+    relayEl.appendChild(el("div", { text: level === "required"
+      ? "Some features won't work until you update it."
+      : "Everything still works; the update adds improvements." }));
+    relayEl.appendChild(el("div", { text: "On GitHub, open your copy of the Craft Suite project → Sync fork → Update branch. Railway rebuilds your relay in a few minutes; then reconnect here." }));
+    var how = el("a", { text: "How to update", href: "/guide/#claude", target: "_blank", rel: "noopener" });
+    relayEl.appendChild(how);
+  }
+
   /* ---------- UI (shadow DOM so app CSS cannot touch it) ---------- */
   var root, host, statusEl, noteEl, logEl, urlInput, tokenInput, connectBtn, disconnectBtn, roInput, panelOpen = false;
 
@@ -509,6 +534,14 @@
       ".panel h3 { margin:0 0 2px; font-size:14px; }",
       ".status { font-size:12px; margin-bottom:8px; }",
       ".note { font-size:11.5px; color:#e0b25e; margin-bottom:6px; min-height:0; }",
+      ".relay { font-size:11.5px; line-height:1.45; border-radius:8px; padding:8px 10px; margin-bottom:8px; }",
+      ".relay b { display:block; font-size:12px; margin-bottom:2px; }",
+      ".relay div { margin-bottom:4px; color:#c9ccd6; }",
+      ".relay a { color:#b7aefb; }",
+      ".relay.available { background:rgba(224,178,94,.1); border:1px solid rgba(224,178,94,.4); color:#e0b25e; }",
+      ".relay.required { background:rgba(224,122,94,.12); border:1px solid rgba(224,122,94,.5); color:#e07a5e; }",
+      ".fab.flag::after { content:''; position:absolute; top:2px; right:2px; width:10px; height:10px; border-radius:50%; background:#e0b25e; border:2px solid #1d1f27; }",
+      ".fab { position:relative; }",
       "input[type=text],input[type=password] { width:100%; background:#14151a; color:#e8e9ee; border:1px solid #3a3d48; border-radius:7px; padding:6px 8px; font:12px ui-monospace,monospace; margin:3px 0 8px; }",
       "label { font-size:11.5px; color:#9a9daa; display:block; }",
       ".row { display:flex; gap:8px; margin-bottom:8px; }",
@@ -526,6 +559,7 @@
     root.appendChild(style);
 
     var fab = el("button", { class: "fab", title: "Agent bridge", text: "⦿", onclick: function () { panelOpen = !panelOpen; panel.style.display = panelOpen ? "block" : "none"; } });
+    fabEl = fab;
     root.appendChild(fab);
 
     var saved = getSaved();
@@ -561,6 +595,8 @@
     panel.appendChild(el("h3", { text: "Agent bridge" }));
     panel.appendChild(statusEl);
     panel.appendChild(noteEl);
+    relayEl = el("div", { class: "relay", style: "display:none;" });
+    panel.appendChild(relayEl);
     panel.appendChild(el("label", { text: "Relay URL" }));
     panel.appendChild(urlInput);
     panel.appendChild(el("label", { text: "Bridge token" }));
