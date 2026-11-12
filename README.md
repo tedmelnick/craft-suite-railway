@@ -1,170 +1,162 @@
-# Open Creative Suite (Craft apps) on Railway
+# Craft Suite: 16 open-source creative apps in your browser, with Claude
 
 > **Credit:** Craft Suite was created by **Derek Cheung**
 > ([derekcheungsa/craft-suite-railway](https://github.com/derekcheungsa/craft-suite-railway),
 > [YouTube](https://www.youtube.com/@derekcheungsa), [Railway template](https://railway.com/deploy/craft-suite)).
-> This fork extends it with ten more apps, in-page Claude support for 15 of the 16,
-> official-release builds, a visitor guide, a relay version check and free Cloudflare
-> hosting (cloudflare/).
+> His original served six apps and let Claude drive them through a relay. This fork builds on
+> that work; see [What's different in this fork](#whats-different-in-this-fork).
 
-One nginx service that serves the browser (WebAssembly) builds of six open-source
-Rust apps from the [storytold](https://github.com/storytold) org — a self-hosted
-creative suite in one deploy:
+One site that serves the browser (WebAssembly) builds of 16 open-source apps by the
+ArtCraft team ([storytold](https://github.com/storytold) on GitHub), plus a small relay
+that lets Claude work in them. A main page groups the apps, and a guide at `/guide/`
+explains how to use them.
 
-| Path | App | Like |
-|---|---|---|
-| `/photocraft/` | [PhotoCraft](https://github.com/storytold/photocraft) | Photoshop |
-| `/lightcraft/` | [LightCraft](https://github.com/storytold/lightcraft) | Lightroom |
-| `/pdfcraft/` | [PdfCraft](https://github.com/storytold/pdfcraft) | Acrobat |
-| `/vectorcraft/` | [VectorCraft](https://github.com/storytold/vectorcraft) | Illustrator |
-| `/filmcraft/` | [FilmCraft](https://github.com/storytold/filmcraft) | Premiere Pro |
-| `/effectcraft/` | [EffectCraft](https://github.com/storytold/effectcraft) | After Effects |
+| Group | App | Similar to | Works with Claude |
+|---|---|---|---|
+| Photo | [PhotoCraft](https://github.com/storytold/photocraft) | Photoshop | yes |
+| | [LightCraft](https://github.com/storytold/lightcraft) | Lightroom | yes |
+| Graphics & Design | [VectorCraft](https://github.com/storytold/vectorcraft) | Illustrator | yes |
+| | [FigCraft](https://github.com/storytold/figcraft) | Figma | yes |
+| | [DesignCraft](https://github.com/storytold/designcraft) | InDesign | yes |
+| Video & Audio | [FilmCraft](https://github.com/storytold/filmcraft) | Premiere | yes |
+| | [EffectCraft](https://github.com/storytold/effectcraft) | After Effects | yes |
+| | [SoundCraft](https://github.com/storytold/soundcraft) | a DAW | yes |
+| | [AniCraft](https://github.com/storytold/anicraft) | Animate | coming soon (no browser build yet) |
+| Documents & Office | [WordCraft](https://github.com/storytold/wordcraft) | Word | yes |
+| | [GridCraft](https://github.com/storytold/gridcraft) | Excel | yes |
+| | [DeckCraft](https://github.com/storytold/deckcraft) | PowerPoint | yes |
+| | [PdfCraft](https://github.com/storytold/pdfcraft) | Acrobat | yes |
+| 3D & CAD | [CADCraft](https://github.com/storytold/cadcraft) | AutoCAD | yes |
+| | [MaterialCraft](https://github.com/storytold/materialcraft) | Substance Designer | yes |
+| | [TextureCraft](https://github.com/storytold/texturecraft) | Substance Painter | yes |
+| Experimental | [Craft Anything](https://github.com/storytold/craft-anything) | | no |
 
-All apps run 100% client-side (the server only hands over static files). Work is
-saved in the browser's OPFS/IndexedDB, **keyed to the exact domain** — set any
-custom domain *before* importing work, and export anything you care about.
+Every app runs entirely in the browser; the server only hands over static files. Work
+is saved in the browser's storage (OPFS / IndexedDB) **for that exact web address**, so
+pick your address before doing real work, and export anything you care about. Chrome
+or Edge is recommended (WebGPU).
 
-## Deploy
+## What's different in this fork
 
-Railway detects the Dockerfile. Build-time `ARG`s pin each app's version
-(override to upgrade; build fails fast if an artifact is missing). Defaults
-serve the FilmCraft/PhotoCraft `-main` web builds that ship the in-page
-agent APIs:
+Compared with Derek's original (commit `f1420e8`, October 2026):
 
-```
-PHOTOCRAFT_VERSION=0.5.0-main4  LIGHTCRAFT_VERSION=0.4.0  PDFCRAFT_VERSION=0.4.0
-VECTORCRAFT_VERSION=0.7.0       FILMCRAFT_VERSION=0.4.0-main  EFFECTCRAFT_VERSION=0.6.0
-FILMCRAFT_URL=... PHOTOCRAFT_URL=...  (fork release zips; see Dockerfile)
-```
+- **Ten more apps** (six to 16), plus a "coming soon" card for AniCraft.
+- **Claude control for 15 of the 16.** The newer official releases include their own
+  in-page Claude API; DesignCraft, SoundCraft, MaterialCraft and TextureCraft are built
+  here from upstream source with a small patch that adds one (see "Builds" below).
+- **Official releases** wherever they exist, kept as copies in this repo's GitHub
+  Releases so the site doesn't depend on anyone else's downloads staying up.
+- **Main page redesign** (apps grouped by kind, version list, a short Claude summary)
+  and a **visitor guide** at `/guide/`.
+- **A shared file "shelf"** so Claude can move files between app tabs, and an opt-in
+  "also download new exports to this PC" box.
+- **Relay version check:** the relay reports its version and the agent panel tells
+  visitors whose own relay needs updating.
+- **Free hosting on Cloudflare** (Worker + R2) alongside Railway; see `cloudflare/`.
+- **Independence and trademark notices** on every page.
 
-Local test: `docker build -t craft-suite . && docker run -p 8090:8080 craft-suite`
-→ http://localhost:8090
+## Builds
 
-## Server behavior (per upstream HOSTING.md of each app)
+App versions are pinned as `ARG`s in the `Dockerfile`, which both Railway and the
+Cloudflare build read.
 
-- `.wasm` served as `application/wasm`; `.js` as `text/javascript`
-- gzip: precompressed at build (`gzip_static`), on-the-fly fallback
-- Caching: `immutable` for hashed assets (photocraft/pdfcraft/vectorcraft/filmcraft);
-  `no-cache` revalidation for unhashed ones (lightcraft/effectcraft) and all HTML
-- COOP/COEP/CORP same-origin + `nosniff` on every response (needed the day
-  lightcraft adds SharedArrayBuffer; harmless today — all resources same-origin)
-- `/healthz` → 200 for healthchecks
+- **Official releases, unmodified:** LightCraft, VectorCraft, FilmCraft, EffectCraft,
+  CADCraft, DeckCraft, GridCraft, FigCraft, WordCraft and Craft Anything. They are
+  copied from upstream releases into this repo's releases by
+  `.github/workflows/build-craft-web.yml` (entries marked `"mirror": true` in
+  `.github/craft-web-builds.json`).
+- **Built here with a small patch** that adds the in-page Claude API: DesignCraft,
+  SoundCraft, MaterialCraft and TextureCraft (patch in `.github/craft-web-patches/`).
+- **Custom builds by Derek Cheung:** PhotoCraft (`0.5.0-main4`) and PdfCraft
+  (`0.5.0-main2`), first published in his repository; patches in
+  `docs/photocraft-agent-api.patch` and `docs/pdfcraft-agent-api.patch`. Copies are kept
+  in this repo's releases.
 
-Apps are MIT/Apache-2.0 by the ArtCraft team (github.com/storytold). This is an
-independent community project, not made, sponsored or endorsed by the ArtCraft
-team. Most apps are their unmodified official web releases; DesignCraft,
-SoundCraft, MaterialCraft and TextureCraft are built from upstream source with a
-small patch adding the in-page Claude API (.github/craft-web-patches), and
-PhotoCraft and PdfCraft are custom builds with Claude APIs (first published in
-derekcheungsa/craft-suite-railway). The ArtCraft name, wordmark and logos are
-trademarks of the ArtCraft Team (see docs/brand/LICENSE-brand.txt in any of
-their repositories). Adobe, Microsoft, Figma and Autodesk product names are
-trademarks of their owners, used only to describe similar apps.
+Server behaviour follows each app's HOSTING notes: `.wasm` as `application/wasm`,
+precompressed gzip, `immutable` caching for hashed assets and `no-cache` for the rest,
+COOP/COEP/CORP same-origin and `nosniff` on every response, and `/healthz` for health
+checks.
 
-## Craft Relay — drive the apps from Claude Desktop (MCP)
+## Hosting
 
-A second service, `craft-relay`, exposes the browser apps as MCP tools. Claude
-Desktop connects to the relay's public MCP endpoint; a bridge inside each app
-page opens a WebSocket back to the relay (nothing connects until you click
-**Connect agent** in the page and paste the bridge token).
+### Railway
 
-The template deploys with everything pre-wired: nginx proxies `/relay/` to
-the relay service over Railway's private network, so the bridge talks to the
-relay **same-origin** — no `RELAY_URL` to configure and no origin allowlist to
-keep in sync. `MCP_TOKEN` and `BRIDGE_TOKEN` are pre-filled with Railway's
-`${{secret(...)}}` function, so every deployment gets fresh random tokens.
-`ALLOWED_ORIGINS` defaults to allow-all (the bridge token remains the gate);
-set it to your suite origin(s), comma-separated, to tighten.
+Two services: `craft-suite` (nginx, built from the root `Dockerfile`) and
+`craft-relay` (a small Node service in `server/`). nginx forwards `/relay/` to the relay
+over Railway's private network, so the in-page panel reaches it on the same address.
+The relay rebuilds only when files under `server/` change.
 
-**Setup (~3 minutes after deploy):**
+Local test: `docker build -t craft-suite . && docker run -p 8090:8080 craft-suite`,
+then open http://localhost:8090.
 
-1. Deploy this project (both services). Get the two generated tokens from the
-   `craft-relay` service's Variables tab (`MCP_TOKEN`, `BRIDGE_TOKEN`).
-2. In Claude Desktop → Settings → Connectors → Add custom connector:
-   - URL: `https://<relay>.up.railway.app/mcp`
-   - Request header: `Authorization: Bearer <MCP_TOKEN>`
-3. Open an app (Chrome/Edge recommended), click the ⦿ button (or add `?agent=1`),
-   paste the `BRIDGE_TOKEN` (relay URL is already `/relay`), Connect. Ask
-   Claude: *"What tabs are connected?"*
+### Cloudflare (free)
 
-### Use a public suite with your own relay
+The same site, served by a Cloudflare Worker from R2 storage, so visitors' downloads
+cost nothing. Every push to `main` that touches the site republishes it
+(`.github/workflows/cloudflare.yml`). The Worker forwards `/relay/` to the Railway relay.
+Setup and free-plan limits are in [cloudflare/README.md](cloudflare/README.md).
 
-Someone else's Craft Suite site works fine for the apps themselves, but its relay
-belongs to its owner. To have **your** Claude drive the apps on a public site, run
-only the relay (no need to deploy the whole suite):
+## Claude: the Craft Relay
+
+The relay exposes the browser apps to Claude as MCP tools. Claude connects to the
+relay's `/mcp` address; a small panel in each app page (the ⦿ button) opens a
+connection back to the relay once you click **Connect** and paste the bridge token.
+Nothing connects until you do, and a Disconnect button is always visible.
+
+**Setting up your own relay** (needed to use Claude with someone else's Craft Suite
+site, whose relay belongs to its owner):
 
 1. Fork this repo on GitHub.
-2. In Railway: **New Project → Deploy from GitHub repo →** your fork. In the
-   service's **Settings**, set **Root Directory** to `server` (it has its own
-   Dockerfile).
+2. In Railway: **New Project → Deploy from GitHub repo →** your fork. In the service's
+   **Settings**, set **Root Directory** to `server`.
 3. In **Variables**, add `MCP_TOKEN` (32+ random characters, e.g.
    `openssl rand -base64 32`) and `BRIDGE_TOKEN` (16+ characters). Optionally set
-   `ALLOWED_ORIGINS` to the suite's address (e.g. `https://craft-suite.example`)
-   so only that site can open bridge sockets.
-4. **Settings → Networking → Generate Domain.** Your relay is now at
-   `https://<your-relay-domain>`.
-5. Claude Desktop → Settings → Connectors → Add custom connector: URL
+   `ALLOWED_ORIGINS` to the suite's address so only that site can open bridge connections.
+4. **Settings → Networking → Generate Domain.**
+5. In Claude: **Settings → Connectors → Add custom connector**, URL
    `https://<your-relay-domain>/mcp`, header `Authorization: Bearer <MCP_TOKEN>`.
 6. On the suite site, open an app, click ⦿, set the relay address to
    `https://<your-relay-domain>`, paste your `BRIDGE_TOKEN`, and Connect.
 
-Keep both tokens private: anyone with `MCP_TOKEN` can drive tabs connected to
-your relay, and anyone with `BRIDGE_TOKEN` can connect tabs to it.
+The guide's "Using Claude" section walks through the same steps for visitors. Keep both
+tokens private: anyone with `MCP_TOKEN` can drive tabs connected to your relay, and
+anyone with `BRIDGE_TOKEN` can connect tabs to it. When this repo's relay changes, the
+agent panel shows a notice; update your fork with GitHub's **Sync fork** button.
 
-**Tools:** `list_sessions`, `list_commands`, `run_command`, `run_batch` (≤20),
-`inspect`, `get_image` (≤1 MB previews), `list_files`, `get_file` (small files
-as base64+sha256), `send_file` (upload a file from the app to a URL you supply —
-large media never enters the conversation), `put_file` (import INTO the app from
-base64 or a URL the page fetches — generated images become documents/media;
-PhotoCraft and FilmCraft and EffectCraft). Together they close the loop: export
-→ send_file → transcribe/edit → put_file back in. Verified adapters: LightCraft v0.4 (`lightcraft.command`),
-EffectCraft v0.6 (`execute/commands/inspect/renderFrame`), FilmCraft
-`0.4.0-main` (`window.filmcraft`, 675 commands; built from unreleased `main`),
-and PhotoCraft `0.5.0-main4` (`window.photocraft`, 851 commands — a minimal
-fork of `main@0c72d95`; patch in `docs/photocraft-agent-api.patch`, PR
-candidate). PhotoCraft `get_image` renders the document composite
-engine-side (`document.render`), sidestepping eframe's web-screenshot limit.
-PdfCraft `0.5.0-main2` (`window.pdfcraft` — the app's own M3.9 control
-channel: `ui.state/inspect/click/drag/type/key/command/commands/set`,
-`ui.screenshot` for `get_image`; fork v2 adds `form.fields` (name/kind/value/
-options) and `form.set` / `form.set_many` / `form.reset` / `form.import`
-(XFDF/FDF/XML/CSV) — undoable programmatic form filling, no clicking needed;
-patch in `docs/pdfcraft-agent-api.patch`, PR candidate; every save/export
-also lands in an in-memory agent file table).
-VectorCraft's web build exposes no in-page agent API yet (checked 2026-10).
+**Tools:** `list_sessions`, `list_commands`, `run_command`, `run_batch` (up to 20),
+`inspect`, `get_image` (previews up to 1 MB), `list_files`, `get_file` (small files),
+`send_file` (upload a file from the app to a URL you give, so large media never enters
+the conversation) and `put_file` (import into the app from base64 or a URL the page
+fetches). Each app's adapter is in `bridge/adapters.js`.
 
-**Note on EffectCraft and FilmCraft:** both engines answer agent requests on
-their UI frame loop. Keep the tab visible and the app running; in a fully
-hidden/stalled tab, commands hang until the relay's 20 s timeout.
+**Moving files between apps (the shelf).** Every app is served from the same address,
+so their tabs share one browser store. `send_file` with url `https://shelf/<name>` puts
+a file on the shelf; `put_file` with that url in another tab imports it; `list_files`
+lists shelf entries. Files stay in the browser, never on the relay or in the
+conversation.
 
-**Safety:** bearer-authed MCP, origin-allowlisted + token-gated bridge sockets,
-destructive-command denylist, in-page read-only toggle and Disconnect,
-10 calls/s rate limit, 20 s call timeout, max 5 tabs, no parameters or images
-in relay logs. While connected, an agent can run commands in that tab only —
-the page shows a persistent indicator.
+**Note on EffectCraft and FilmCraft:** both answer Claude on their drawing loop. Keep
+the tab visible; in a hidden tab, commands wait until the relay's 20-second timeout.
 
-**The one-pipeline pattern for agents** (verified end to end):
+**Safety:** token-protected MCP; origin-checked, token-gated bridge connections; a
+denylist of destructive commands; a read-only switch and Disconnect in the page; 10
+calls a second, 20-second timeout, at most 5 tabs; no parameters or images in relay
+logs. While connected, Claude can act only in that tab, and the page shows that it is
+connected.
 
-1. Generate/host an image, then `put_file` its **URL** (the page fetches it —
-   bytes never enter the conversation; URL must send CORS headers, e.g.
-   raw.githubusercontent.com). A **local file** is read by the agent itself and
-   passed as `base64`. Works in PhotoCraft, FilmCraft, EffectCraft.
-2. Edit: `run_command` / `run_batch` (PhotoCraft: `document.render`-backed
-   `get_image`, `document.thumbnailGrid` for coarse colour checks).
-3. Check: `get_image` returns the flattened composite as an image.
-4. Export: `run_command layer.exportAs {path}` (or any export command) — lands
-   in the in-app file table.
-5. Retrieve: `get_file` (small) or `send_file` to a URL you control (large).
+The relay's original design is Derek Cheung's: see `PRD.md` and
+`docs/PRD-Craft-Relay.pdf`.
 
-**Moving files between apps — the shelf.** Every app is served from the same
-origin, so their tabs share one browser store. `send_file` with url
-`https://shelf/<name>` (or `https://shelf/` to keep the file name) puts a file
-from one app's file table on the shelf; `put_file` with that url in another
-tab imports it there; `list_files` in any tab lists shelf entries (kind
-`shelf`); `get_file` reads one. Bytes stay in the browser — never on the relay
-or in the conversation. The bridge panel shows what's on the shelf and has a
-**Clear** button, plus an opt-in **"also download new exports to this PC"**
-checkbox (remembered per browser) that saves each new export via a normal
-browser download.
+## Credits, licences and trademarks
 
-See `docs/PRD-Craft-Relay.pdf` for the design document.
+- **Craft Suite** was created by Derek Cheung. His repository does not include a
+  licence yet, so his original code remains his; this fork will adopt whatever licence
+  he chooses.
+- **The apps** are by the ArtCraft team (storytold), MIT / Apache-2.0. This is an
+  independent community project, not made, sponsored or endorsed by the ArtCraft team.
+  The six builds listed under "Built here" and "Custom builds" above are modified to add
+  Claude control. The ArtCraft name, wordmark and logos are trademarks of the ArtCraft
+  Team (see `docs/brand/LICENSE-brand.txt` in any of their repositories).
+- **Font:** Archivo, SIL Open Font License (`portal/fonts/OFL-Archivo.txt`).
+- Adobe, Microsoft, Figma and Autodesk product names are trademarks of their owners,
+  used only to describe similar apps.
