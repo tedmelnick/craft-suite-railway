@@ -151,12 +151,13 @@ jobs:
           SRC_URL: ${{ matrix.url }}
           MIRROR: ${{ matrix.mirror }}
         run: |
+          ind="Craft Suite is an independent community project, not made, sponsored or endorsed by the ArtCraft team."
           if [ -n "$SRC_URL" ]; then
-            notes="Unmodified copy of $SRC_URL, mirrored by .github/workflows/build-craft-web.yml."
+            notes="Copy of $SRC_URL, kept here so the site doesn't depend on another repository. That build is modified (it adds an in-page Claude API), so it is not an official ArtCraft release. $ind"
           elif [ "$MIRROR" = "true" ]; then
-            notes="Unmodified copy of storytold/${APP}'s ${REF} web release, mirrored by .github/workflows/build-craft-web.yml."
+            notes="Unmodified copy of the ArtCraft team's official storytold/${APP} ${REF} web release, mirrored by .github/workflows/build-craft-web.yml. $ind"
           else
-            notes="Web build of storytold/${APP}@${REF} (upstream main, with the window.${APP} agent API). Built by .github/workflows/build-craft-web.yml."
+            notes="Modified web build of storytold/${APP}@${REF}: built from upstream source with a small patch that adds the in-page Claude API (.github/craft-web-patches), by .github/workflows/build-craft-web.yml. Not an official ArtCraft release. $ind"
           fi
           gh release create "${{ steps.name.outputs.tag }}" "${{ steps.name.outputs.asset }}" \
             -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
