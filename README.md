@@ -1,5 +1,12 @@
 # Open Creative Suite (Craft apps) on Railway
 
+> **Credit:** Craft Suite was created by **Derek Cheung**
+> ([derekcheungsa/craft-suite-railway](https://github.com/derekcheungsa/craft-suite-railway),
+> [YouTube](https://www.youtube.com/@derekcheungsa), [Railway template](https://railway.com/deploy/craft-suite)).
+> This fork extends it with ten more apps, in-page Claude support for 15 of the 16,
+> official-release builds, a visitor guide, a relay version check and free Cloudflare
+> hosting (cloudflare/).
+
 One nginx service that serves the browser (WebAssembly) builds of six open-source
 Rust apps from the [storytold](https://github.com/storytold) org — a self-hosted
 creative suite in one deploy:
