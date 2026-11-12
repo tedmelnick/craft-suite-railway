@@ -74,6 +74,13 @@
     flex: none; display: inline-flex; align-items: center; justify-content: center;
     width: 22px; height: 22px; border-radius: 6px; background: rgba(232,116,42,.16); color: #E8742A;
   }
+  .guide-link { margin: 14px 0 0; }
+  .guide-link a {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; border-radius: 999px; text-decoration: none;
+    font-size: 13.5px; font-weight: 600; color: #b7aefb; background: rgba(109,93,246,.1); border: 1px solid rgba(109,93,246,.4);
+    transition: background .15s, border-color .15s, color .15s;
+  }
+  .guide-link a:hover { color: #d6d0ff; background: rgba(109,93,246,.18); border-color: rgba(109,93,246,.65); }
   .legend { color: var(--muted); font-size: 13px; margin-top: 12px; display: inline-flex; align-items: center; gap: 7px; }
   .card .like .note { text-transform: none; letter-spacing: 0; }
   .card .no-agent { color: var(--muted); font-size: 12px; margin-top: 10px; display: flex; align-items: center; gap: 7px; }
@@ -189,13 +196,14 @@
   <p class="credit">Apps by the ArtCraft Team</p>
   <p>Sixteen open-source, clean-room reimplementations of classic creative tools — pure Rust, compiled to WebAssembly, running entirely in your browser.</p>
   <p class="legend"><span class="agent" data-agent-icon></span>Every app works with Claude, except Craft Anything</p>
+  <p class="guide-link"><a href="guide/">New here? Read the 5-minute guide <span aria-hidden="true">&rarr;</span></a></p>
 </header>
 <section class="visit" aria-label="Using this site">
   <ul>
     <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span><b>Free, nothing to install</b>Click any app to open it. No account or sign-up.</span></li>
     <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span><b>Your files stay on your device</b>Work is saved in this browser only &mdash; never uploaded. Export anything you want to keep; clearing site data deletes it.</span></li>
     <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span><b>Use Chrome or Edge</b>The first open of an app can take a minute or two while it gets ready (EffectCraft is the slowest); after that it&rsquo;s quicker.</span></li>
-    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span><b>Want Claude to drive the apps?</b>Bring your own small relay &mdash; <a href="#setup">see the steps below</a>.</span></li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span><b>Want Claude to drive the apps?</b>Bring your own small relay &mdash; <a href="guide/#claude">see the guide</a>.</span></li>
   </ul>
 </section>
 <main id="apps"></main>
