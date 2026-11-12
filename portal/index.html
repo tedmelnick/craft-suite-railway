@@ -179,8 +179,18 @@
     background: #14151a; border: 1px solid #3a3d48; color: #e8e9ee; font-size: 12px; vertical-align: middle; margin: 0 2px;
   }
   .setup .fine { color: var(--muted); font-size: 12px; padding: 18px 2px 0; border-top: 1px solid #2a2d38; margin-top: 20px; }
+  .setup-points { list-style: none; margin: 0 0 18px; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px 22px; }
+  .setup-points li { color: var(--muted); font-size: 13.2px; line-height: 1.55; padding-left: 14px; position: relative; }
+  .setup-points li::before { content: ""; position: absolute; left: 0; top: .62em; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .setup-points b { color: var(--text); font-weight: 600; }
+  .setup-cta { margin: 0 0 4px; }
+  .setup-cta a {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 999px; text-decoration: none;
+    font-size: 14px; font-weight: 600; color: #fff; background: var(--accent); border: 1px solid var(--accent);
+  }
+  .setup-cta a:hover { background: #7d6ff8; }
+  .setup .fine.owner { border-top: 1px solid #2a2d38; padding-top: 14px; margin-top: 16px; opacity: .85; }
   .setup .fine.owner #mcp-url { white-space: normal; word-break: break-all; }
-  .setup .fine.owner { border-top: 0; padding-top: 0; margin-top: 8px; opacity: .85; }
   .dot-inline { display: none; width: 22px; height: 22px; border-radius: 50%; background: var(--panel); border: 2px solid var(--accent);
     color: var(--accent); font-size: 11px; font-weight: 700; align-items: center; justify-content: center; flex: none; }
   @media (max-width: 980px) {
@@ -214,43 +224,16 @@
       <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div>
       <div>
         <h2>Drive these apps from your own Claude</h2>
-        <p>This site&rsquo;s Claude connection is private, so you run your own small relay &mdash; a tiny server that links Claude to the app open in your browser. About ten minutes, once.</p>
+        <p>Works with every app except Craft Anything. This site&rsquo;s own Claude connection is private, so you run a small relay of your own &mdash; a tiny server that links Claude to the app open in your browser.</p>
       </div>
     </div>
-    <div class="steps">
-      <div class="step">
-        <div class="rail"><div class="dot">1</div></div>
-        <h3><span class="dot-inline">1</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></svg>Run your own relay</h3>
-        <p>Fork <a href="https://github.com/tedmelnick/craft-suite-railway" rel="noopener">this project on GitHub</a>, then on <b>Railway</b>: new service from your fork, <b>Root Directory</b> <span class="tok">server</span>.</p>
-        <p>Add two variables you make up: <span class="tok">MCP_TOKEN</span> (32+ random characters) and <span class="tok">BRIDGE_TOKEN</span> (16+), then <b>Generate Domain</b>. <a href="https://github.com/tedmelnick/craft-suite-railway#use-a-public-suite-with-your-own-relay" rel="noopener">Full guide</a>.</p>
-      </div>
-      <div class="step">
-        <div class="rail"><div class="dot">2</div></div>
-        <h3><span class="dot-inline">2</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 9h5M7 13h8"/><path d="M17 18v3M12 18v3M7 18v3"/></svg>Add the connector</h3>
-        <p><b>Claude Desktop &rarr; Settings &rarr; Connectors &rarr; Add custom connector</b>:</p>
-        <div class="chip"><span class="val">https://&lt;your-relay-domain&gt;/mcp</span><button type="button" data-copy-self="1">Copy</button></div>
-        <div class="chip"><span class="val">Authorization: Bearer &lt;MCP_TOKEN&gt;</span><button type="button" data-copy-self="1">Copy</button></div>
-        <p>Swap in your relay&rsquo;s domain and your <span class="tok">MCP_TOKEN</span>.</p>
-      </div>
-      <div class="step">
-        <div class="rail"><div class="dot">3</div></div>
-        <h3><span class="dot-inline">3</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><path d="M6 6l4.2 4.2M18 18l-4.2-4.2"/></svg>Connect a tab</h3>
-        <p>Open any app above, click the <span class="fabdemo">&#10686;</span> button in the bottom-right corner, enter your relay&rsquo;s address <span class="tok">https://&lt;your-relay-domain&gt;</span> and your <span class="tok">BRIDGE_TOKEN</span>, then press <b>Connect agent</b>.</p>
-        <p>A persistent indicator shows while the bridge is live.</p>
-      </div>
-      <div class="step">
-        <div class="rail"><div class="dot">4</div></div>
-        <h3><span class="dot-inline">4</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.3 0-2.6-.3-3.7-.8L3 21l1.8-5.8A8.5 8.5 0 1 1 21 11.5z"/></svg>Try it</h3>
-        <p>Ask Claude:</p>
-        <ul>
-          <li>&ldquo;What tabs are connected?&rdquo;</li>
-          <li>&ldquo;Fill full_name and date_signed in the PDF&rdquo;</li>
-          <li>&ldquo;Show me the PhotoCraft canvas&rdquo;</li>
-        </ul>
-        <p>Keep the app window <b>visible</b> &mdash; hidden tabs pause their frame loop.</p>
-      </div>
-    </div>
-    <p class="fine">Nothing connects until you click Connect in the page, and the bridge only ever drives the tab it lives in &mdash; a read-only toggle and Disconnect sit in the <span class="fabdemo">&#10686;</span> panel. Works with 15 of the 16 apps today — every app except Craft Anything. Keep both tokens to yourself: anyone with them can reach your relay.</p>
+    <ul class="setup-points">
+      <li><b>Optional.</b> Every app works fully on its own; Claude is an extra.</li>
+      <li><b>Ask in plain words</b> &mdash; &ldquo;make a budget table&rdquo;, &ldquo;fill in this PDF form&rdquo; &mdash; and Claude works in the app open in your browser.</li>
+      <li><b>Your own relay, your own costs.</b> About ten minutes to set up once, on your own Claude and Railway accounts.</li>
+      <li><b>You stay in control.</b> Nothing connects until you press Connect; Claude only reaches that tab, with a read-only switch and Disconnect in the <span class="fabdemo">&#10686;</span> panel.</li>
+    </ul>
+    <p class="setup-cta"><a href="guide/#claude">Read the setup guide <span aria-hidden="true">&rarr;</span></a></p>
     <p class="fine owner">Running this site? Its own relay is already wired in: the connector URL is <span class="tok" id="mcp-url"></span>, the relay address in the <span class="fabdemo">&#10686;</span> panel can stay <span class="tok">/relay</span>, and the tokens are in the <b>craft-relay</b> service&rsquo;s Variables on Railway.</p>
   </div>
 </section>
