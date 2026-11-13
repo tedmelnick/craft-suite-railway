@@ -21,7 +21,7 @@ jobs:
           while read -r j; do
             tag=$(jq -r '.[0]' <<<"$j"); body=$(jq -r '.[1]' <<<"$j"); app=${tag%%-web-*}
             case "$tag" in
-              photocraft-*|pdfcraft-*)
+              photocraft-*-main*|pdfcraft-*-main*)
                 notes="Modified ${app} web build by Derek Cheung, adding an in-page Claude API; first published in https://github.com/derekcheungsa/craft-suite-railway (patch: docs/${app}-agent-api.patch). This is a copy of his release zip, kept here so the site doesn't depend on another repository. Not an official ArtCraft release. $ind" ;;
               designcraft-*-main-*|soundcraft-*-main-*|materialcraft-*-main-*|texturecraft-*-main-*)
                 src=$(grep -oE 'storytold/[a-z-]+@[0-9a-f]+' <<<"$body" | head -1 || true)
