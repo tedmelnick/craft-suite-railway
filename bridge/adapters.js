@@ -338,7 +338,7 @@
    * fires). Command reference: docs/mcp.md in storytold/vectorcraft. */
   adapters.vectorcraft = {
     app: "vectorcraft",
-    versions: ["0.21"],
+    versions: ["0.21", "0.24"],
     detect: function () { return typeof window.vectorcraft === "object" && typeof window.vectorcraft.execute === "function"; },
     readOnlyCommands: ["document.formats", "document.info"],
     listCommands: function (filter) {
