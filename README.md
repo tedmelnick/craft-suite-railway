@@ -61,16 +61,18 @@ App versions are pinned as `ARG`s in the `Dockerfile`, which both Railway and th
 Cloudflare build read.
 
 - **Official releases, unmodified:** LightCraft, VectorCraft, FilmCraft, EffectCraft,
-  CADCraft, DeckCraft, GridCraft, FigCraft, WordCraft and Craft Anything. They are
+  CADCraft, DeckCraft, GridCraft, FigCraft, WordCraft, PdfCraft and Craft Anything. They are
   copied from upstream releases into this repo's releases by
   `.github/workflows/build-craft-web.yml` (entries marked `"mirror": true` in
   `.github/craft-web-builds.json`).
 - **Built here with a small patch** that adds the in-page Claude API: DesignCraft,
   SoundCraft, MaterialCraft and TextureCraft (patch in `.github/craft-web-patches/`).
-- **Custom builds by Derek Cheung:** PhotoCraft (`0.5.0-main4`) and PdfCraft
-  (`0.5.0-main2`), first published in his repository; patches in
-  `docs/photocraft-agent-api.patch` and `docs/pdfcraft-agent-api.patch`. Copies are kept
-  in this repo's releases.
+- **Custom build by Derek Cheung:** PhotoCraft (`0.5.0-main4`), first published in his
+  repository; patch in `docs/photocraft-agent-api.patch`. A copy is kept in this repo's
+  releases. (PdfCraft was also his custom build, `0.5.0-main2`, until November 2026, when
+  it moved to the official release. His PdfCraft patch, `docs/pdfcraft-agent-api.patch`,
+  added form commands, such as filling a field by name, that the official release doesn't
+  have yet; there, Claude fills a form by clicking a field and typing.)
 
 Server behaviour follows each app's HOSTING notes: `.wasm` as `application/wasm`,
 precompressed gzip, `immutable` caching for hashed assets and `no-cache` for the rest,
@@ -154,7 +156,7 @@ The relay's original design is Derek Cheung's: see `PRD.md` and
   he chooses.
 - **The apps** are by the ArtCraft team (storytold), MIT / Apache-2.0. This is an
   independent community project, not made, sponsored or endorsed by the ArtCraft team.
-  The six builds listed under "Built here" and "Custom builds" above are modified to add
+  The five builds listed under "Built here" and "Custom build" above are modified to add
   Claude control. The ArtCraft name, wordmark and logos are trademarks of the ArtCraft
   Team (see `docs/brand/LICENSE-brand.txt` in any of their repositories).
 - **Font:** Archivo, SIL Open Font License (`portal/fonts/OFL-Archivo.txt`).

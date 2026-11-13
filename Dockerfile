@@ -7,7 +7,7 @@ FROM alpine:3.20 AS fetch
 
 ARG PHOTOCRAFT_VERSION=0.5.0-main4
 ARG LIGHTCRAFT_VERSION=0.18.0
-ARG PDFCRAFT_VERSION=0.5.0-main2
+ARG PDFCRAFT_VERSION=0.21.1
 ARG VECTORCRAFT_VERSION=0.21.0
 ARG FILMCRAFT_VERSION=0.17.0
 ARG EFFECTCRAFT_VERSION=0.22.0
@@ -23,11 +23,12 @@ ARG FIGCRAFT_VERSION=0.18.1
 ARG MATERIALCRAFT_VERSION=0.1.3-main-agent-fonts
 ARG TEXTURECRAFT_VERSION=0.3.1-main-agent-fonts
 ARG WORDCRAFT_VERSION=0.18.1
-# The PhotoCraft and PdfCraft web builds that ship the in-page agent APIs
-# (window.photocraft / window.pdfcraft, incl. PdfCraft's form.* commands) are
-# were first published from derekcheungsa/craft-suite-railway (this repo's parent), not
-# upstream; unmodified copies now live in this repo's releases ("url" mirror entries in
-# .github/craft-web-builds.json). They carry a "-main" version suffix and a commit-tagged asset.
+# The PhotoCraft web build that ships the in-page agent API (window.photocraft)
+# was first published from derekcheungsa/craft-suite-railway (this repo's parent), not
+# upstream; an unmodified copy now lives in this repo's releases (a "url" mirror entry in
+# .github/craft-web-builds.json). It carries a "-main" version suffix and a commit-tagged asset.
+# PdfCraft used to be such a build too (0.5.0-main2, with form.* commands); since Nov 13, 2026
+# it is the official release, whose in-page API is opt-in with ?control (the bridge adds it).
 # Upstream's own releases, unchanged, mirrored here by the build workflow ("mirror"
 # entries in .github/craft-web-builds.json) because GitHub keeps answering Railway's
 # builder with 504 for storytold's release assets. Keep each in step with its *_VERSION.
@@ -44,7 +45,7 @@ ARG DECKCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/do
 ARG CADCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/cadcraft-web-0.20.1-v0.20.1/cadcraft-web-0.20.1.zip"
 ARG EFFECTCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/effectcraft-web-0.22.0-v0.22.0/effectcraft-web-0.22.0.zip"
 ARG PHOTOCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/photocraft-web-0.5.0-main4-0c72d95/photocraft-web-0.5.0-main4.zip"
-ARG PDFCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/pdfcraft-web-0.5.0-main2-23f0675/pdfcraft-web-0.5.0-main2.zip"
+ARG PDFCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/pdfcraft-web-0.21.1-v0.21.1/pdfcraft-web-0.21.1.zip"
 # GridCraft, WordCraft, FigCraft, DeckCraft and CADCraft releases ship the in-page agent
 # API (window.<app> from craft-web-api) themselves, so they are mirrored above.
 # DesignCraft, SoundCraft, MaterialCraft and TextureCraft releases don't yet: these are

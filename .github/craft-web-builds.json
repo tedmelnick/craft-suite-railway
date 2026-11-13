@@ -14,5 +14,5 @@
   {"app": "deckcraft", "ref": "v0.18.1", "label": "0.18.1", "mirror": true},
   {"app": "cadcraft", "ref": "v0.20.1", "label": "0.20.1", "mirror": true},
   {"app": "photocraft", "ref": "0c72d95", "label": "0.5.0-main4", "mirror": true, "url": "https://github.com/derekcheungsa/craft-suite-railway/releases/download/photocraft-web-0.5.0-main4-0c72d95/photocraft-web-0.5.0-main4.zip"},
-  {"app": "pdfcraft", "ref": "23f0675", "label": "0.5.0-main2", "mirror": true, "url": "https://github.com/derekcheungsa/craft-suite-railway/releases/download/pdfcraft-web-0.5.0-main2-23f0675/pdfcraft-web-0.5.0-main2.zip"}
+  {"app": "pdfcraft", "ref": "v0.21.1", "label": "0.21.1", "mirror": true}
 ]

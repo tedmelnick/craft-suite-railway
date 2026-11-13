@@ -328,80 +328,6 @@
     }
   };
 
-  /* ---------------- PdfCraft ----------------
-   * In-page API (our fork of main, via PDFCRAFT_URL; stock builds have no
-   * in-page API — detect() simply never fires there): window.pdfcraft — the
-   * app's own M3.9 control channel (ui.state / ui.inspect / ui.click /
-   * ui.command / ui.screenshot, …) as promises, plus the agent file table:
-   * every save and export is kept in memory for list/read/upload. Requests
-   * are answered on the UI frame loop like the other craft apps. */
-  adapters.pdfcraft = {
-    app: "pdfcraft",
-    versions: ["0.5"],
-    detect: function () { return typeof window.pdfcraft === "object" && typeof window.pdfcraft.request === "function"; },
-    readOnlyCommands: ["ui.state", "ui.commands", "ui.inspect", "ui.screenshot", "form.fields"],
-    // The control-channel methods every build answers (0.5.0-main2+ adds form.*).
-    // Listed with list_commands so the interaction model is discoverable in-band.
-    agentMethods: [
-      { command: "form.fields", params: {}, doc: "Interactive fields of the active document: name, kind (Text/CheckBox/Radio/Combo/List/Signature), value, default, options, tooltip" },
-      { command: "form.set", params: { name: "full_name", value: "Ada Lovelace" }, doc: "Fill one field. Value by kind: string -> text (a radio's on-state for radios), true/false -> check box, array -> choices, number -> text, null -> clear a radio group" },
-      { command: "form.set_many", params: { values: { full_name: "Ada Lovelace", date_signed: "2026-10-10" } }, doc: "Fill several fields in one call: {field name: value, ...}" },
-      { command: "form.reset", params: {}, doc: "Clear fields back to their defaults — all of them, or {names: [\"full_name\"]}" },
-      { command: "form.import", params: { name: "data.xfdf", base64: "..." }, doc: "Import XFDF/FDF/XML/CSV form + comment data into the ACTIVE document (undoable). form.fields lists the field names an XFDF needs" },
-      { command: "ui.state", params: {}, doc: "App state: documents, active page, zoom, panels, dialog, notice, pages_on_screen (rects for aiming ui.click/ui.drag)" },
-      { command: "ui.inspect", params: { query: "Save" }, doc: "Widget tree (AccessKit): buttons, fields, text boxes with id, label, value, rect; query/role/limit filters. This is how to find what to click" },
-      { command: "ui.click", params: { label: "Save" }, doc: "Click a widget by AccessKit id or label, or a point {x, y} in window points (see ui.state pages_on_screen)" },
-      { command: "ui.type", params: { text: "hello" }, doc: "Type text into the focused widget (click a field first)" },
-      { command: "ui.key", params: { key: "Enter" }, doc: "Press a key (egui names: Enter, Escape, ArrowDown, A, F5...), optional modifiers: [\"Ctrl\"]" },
-      { command: "ui.drag", params: { from: [100, 100], to: [200, 200] }, doc: "Press, move, release — drawing comments, selecting text, moving things" },
-      { command: "ui.set", params: { key: "page", value: "2" }, doc: "View options: page, zoom, layout, theme, mode, default-mode..." },
-      { command: "ui.screenshot", params: {}, doc: "PNG of the window as png_base64 (needs the tab drawing — keep the window visible)" }
-    ],
-    listCommands: function (filter) {
-      var self = this;
-      return window.pdfcraft.commands().then(function (wrapped) {
-        var cmds = wrapped && wrapped.commands instanceof Array ? wrapped.commands : [];
-        var f = (filter || "").toLowerCase();
-        var match = function (c) { return !f || JSON.stringify(c).toLowerCase().indexOf(f) !== -1; };
-        // Registry commands run as the menu would (no params). The agent
-        // methods (control channel + form filling) take JSON params — they are
-        // what an agent uses to read and set values.
-        var registry = cmds.filter(match).map(function (c) { c.source = "menu"; return c; });
-        var methods = self.agentMethods.filter(match).map(function (c) { c.source = "agent"; return c; });
-        return registry.concat(methods);
-      });
-    },
-    runCommand: function (command, params) {
-      // Registry commands run as the menu would (no params); the control-channel
-      // methods (ui.* and form.*) take a params object.
-      if (/^(ui|form)\./.test(command)) return window.pdfcraft.request(command, params || {});
-      return window.pdfcraft.execute(command);
-    },
-    inspect: function () { return window.pdfcraft.state(); },
-    image: function () {
-      return window.pdfcraft.screenshot({}).then(normalizeImage, function (e) {
-        throw new Error("screenshot failed: " + (e && (e.message || e)));
-      });
-    },
-    listFiles: function () { return window.pdfcraft.files(); },
-    file: function (path) {
-      return window.pdfcraft.readFile(path).then(function (bytes) {
-        if (bytes && bytes instanceof Error) throw bytes;
-        if (!bytes) throw new Error(path + ": not found");
-        return bytes;
-      });
-    },
-    sendFile: function (path, url, method) {
-      return uploadBytes(function (p) { return window.pdfcraft.readFile(p); }, path, url, method);
-    },
-    importFile: function (args) {
-      // importUrl fetches in the page (CORS-enabled URLs); openBytes delivers
-      // base64 through the same inbox as ?file= (opens as a document).
-      if (args.url) return window.pdfcraft.importUrl(args.url, args.name || undefined);
-      return window.pdfcraft.openBytes(args.name, window.CraftRelayFileKit.fromBase64(args.base64));
-    }
-  };
-
   /* ---------------- VectorCraft ----------------
    * In-page API (upstream v0.21+, installed from the wasm as window.vectorcraft):
    * execute(command, params) / commands() / inspect() / screenshot() mirror
@@ -479,7 +405,7 @@
   };
 
   /* ---------------- craft-web-api apps ----------------
-   * GridCraft, WordCraft, FigCraft, DeckCraft, CADCraft (upstream main) and
+   * GridCraft, WordCraft, FigCraft, DeckCraft, CADCraft, PdfCraft (official releases) and
    * DesignCraft, SoundCraft, MaterialCraft, TextureCraft (upstream main plus
    * .github/craft-web-patches): craft-web-api installs
    * window.<app> = { request, execute, commands, docInspect, uiInspect,
@@ -523,6 +449,19 @@
       // that screen. Close it so the window shows the document, as a click would.
       afterOpen: function (api) { return api.execute("ui.backstage", { open: false }); },
       openCommands: /^file\.(new|open|newFromTemplate)$/
+    },
+    pdfcraft: {
+      versions: ["0.21"],
+      // PdfCraft installs window.pdfcraft only with ?control in the page URL (opt-in).
+      // Its control channel is the desktop app's UI channel (ui.*); registry commands
+      // (file.save, form.import_data, page.rotate_cw, ...) go through execute() = ui.command.
+      // There are no field-level form commands: fill a form by clicking a field and typing.
+      urlFlag: "control",
+      canvasId: "pdfcraft",
+      control: ["ui.state", "ui.inspect", "ui.click", "ui.drag", "ui.move", "ui.key", "ui.type", "ui.screenshot",
+        "ui.set", "ui.resize", "ui.focus", "ui.panel", "ui.command", "ui.commands"],
+      readOnly: ["ui.state", "ui.inspect", "ui.commands", "ui.screenshot"],
+      openExt: /\.pdf$/i
     },
     figcraft: {
       versions: ["0.15.0-main", "0.18"],
@@ -591,7 +530,10 @@
   /* The page-host shim: only on an app page whose spec has openExt, and only once. */
   var PAGE_APP = location.pathname.split("/").filter(Boolean)[0] || "";
   var hostState = { files: [], dirty: false, lastError: null, ready: false };
-  function hostCanvas(app) { return document.getElementById(app.replace(/-/g, "_") + "_canvas"); }
+  function hostCanvas(app) {
+    var spec = CRAFT_HOSTED[app];
+    return document.getElementById(spec && spec.canvasId || app.replace(/-/g, "_") + "_canvas");
+  }
   function startPageHost(app) {
     var canvas = hostCanvas(app);
     if (!canvas || canvas.getAttribute("data-host")) return;
