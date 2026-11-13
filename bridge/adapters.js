@@ -185,10 +185,11 @@
   };
 
   /* ---------------- FilmCraft ----------------
-   * In-page API (main @ 7b6c134, post-v0.4.0; see docs/web.md): the desktop
-   * control channel as promises. The stock v0.4.0 release has no in-page API
-   * (detect() simply never fires there). Replies are polled on the UI frame
-   * loop, so a stalled/hidden tab means calls hang until the relay timeout. */
+   * In-page API (window.filmcraft; first on main after v0.4.0, included in the
+   * official releases since, e.g. v0.17.0): the desktop control channel as
+   * promises. Builds without it simply never match detect(). Replies are polled
+   * on the UI frame loop, so a stalled/hidden tab means calls hang until the
+   * relay timeout. */
   adapters.filmcraft = {
     app: "filmcraft",
     versions: ["0.4", "0.17"],

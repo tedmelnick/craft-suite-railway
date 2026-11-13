@@ -109,7 +109,7 @@ RUN printf 'window.CRAFT_RELAY = { url: "%s" };\n' "$RELAY_URL" > /site/bridge/c
 RUN find /site -type f \( -name '*.wasm' -o -name '*.js' -o -name '*.html' \) \
       -exec sh -c 'gzip -9 -c "$1" > "$1.gz"' _ {} \;
 
-# ---- Stage 2: nginx serving the six apps + portal ----
+# ---- Stage 2: nginx serving the apps, portal, guide and bridge ----
 FROM nginx:1.27-alpine
 
 # Port nginx listens on, plus the relay proxy's upstream (host:port on
