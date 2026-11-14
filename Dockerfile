@@ -9,7 +9,7 @@ ARG PHOTOCRAFT_VERSION=0.5.0-main4
 ARG LIGHTCRAFT_VERSION=0.21.1
 ARG PDFCRAFT_VERSION=0.21.1
 ARG VECTORCRAFT_VERSION=0.24.1
-ARG FILMCRAFT_VERSION=0.17.0
+ARG FILMCRAFT_VERSION=0.20.1
 ARG EFFECTCRAFT_VERSION=0.22.0
 # Additional ArtCraft-launcher apps. All but Craft Anything have the in-page agent API
 # (see the *_URL args below); Craft Anything has no control channel to drive.
@@ -36,7 +36,7 @@ ARG WORDCRAFT_VERSION=0.18.1
 # switching between a mirror and the original upstream copy.
 ARG LIGHTCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/lightcraft-web-0.21.1-v0.21.1/lightcraft-web-0.21.1.zip"
 ARG VECTORCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/vectorcraft-web-0.24.1-v0.24.1/vectorcraft-web-0.24.1.zip"
-ARG FILMCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/filmcraft-web-0.17.0-v0.17.0/filmcraft-web-0.17.0.zip"
+ARG FILMCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/filmcraft-web-0.20.1-v0.20.1/filmcraft-web-0.20.1.zip"
 ARG CRAFT_ANYTHING_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/craft-anything-web-0.3.0-v0.3.0/craft-anything-web-0.3.0.zip"
 ARG GRIDCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/gridcraft-web-0.19.1-v0.19.1/gridcraft-web-0.19.1.zip"
 ARG WORDCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/wordcraft-web-0.18.1-v0.18.1/wordcraft-web-0.18.1.zip"

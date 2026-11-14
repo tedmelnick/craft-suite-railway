@@ -6,7 +6,7 @@
   {"app": "effectcraft", "ref": "v0.22.0", "label": "0.22.0", "mirror": true},
   {"app": "lightcraft", "ref": "v0.21.1", "label": "0.21.1", "mirror": true},
   {"app": "vectorcraft", "ref": "v0.24.1", "label": "0.24.1", "mirror": true},
-  {"app": "filmcraft", "ref": "v0.17.0", "label": "0.17.0", "mirror": true},
+  {"app": "filmcraft", "ref": "v0.20.1", "label": "0.20.1", "mirror": true},
   {"app": "craft-anything", "ref": "v0.3.0", "label": "0.3.0", "mirror": true},
   {"app": "gridcraft", "ref": "v0.19.1", "label": "0.19.1", "mirror": true},
   {"app": "wordcraft", "ref": "v0.18.1", "label": "0.18.1", "mirror": true},

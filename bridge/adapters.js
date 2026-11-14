@@ -192,7 +192,7 @@
    * relay timeout. */
   adapters.filmcraft = {
     app: "filmcraft",
-    versions: ["0.4", "0.17"],
+    versions: ["0.4", "0.17", "0.20"],
     detect: function () { return typeof window.filmcraft === "object" && typeof window.filmcraft.execute === "function"; },
     readOnlyCommands: [],
     notReady: function () {
