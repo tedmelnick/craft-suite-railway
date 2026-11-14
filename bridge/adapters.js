@@ -91,7 +91,7 @@
    * of the confirmed commands. */
   adapters.lightcraft = {
     app: "lightcraft",
-    versions: ["0.4", "0.18"],
+    versions: ["0.4", "0.18", "0.21"],
     detect: function () { return typeof window.lightcraft === "object" && typeof window.lightcraft.command === "function"; },
     readOnlyCommands: ["library.info", "develop.controls", "develop.get"],
     catalog: [

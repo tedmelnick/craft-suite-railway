@@ -6,7 +6,7 @@
 FROM alpine:3.20 AS fetch
 
 ARG PHOTOCRAFT_VERSION=0.5.0-main4
-ARG LIGHTCRAFT_VERSION=0.18.0
+ARG LIGHTCRAFT_VERSION=0.21.1
 ARG PDFCRAFT_VERSION=0.21.1
 ARG VECTORCRAFT_VERSION=0.24.1
 ARG FILMCRAFT_VERSION=0.17.0
@@ -34,7 +34,7 @@ ARG WORDCRAFT_VERSION=0.18.1
 # builder with 504 for storytold's release assets. Keep each in step with its *_VERSION.
 # GitHub's downloads are flaky at times, so each file is retried for ~10 minutes,
 # switching between a mirror and the original upstream copy.
-ARG LIGHTCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/lightcraft-web-0.18.0-v0.18.0/lightcraft-web-0.18.0.zip"
+ARG LIGHTCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/lightcraft-web-0.21.1-v0.21.1/lightcraft-web-0.21.1.zip"
 ARG VECTORCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/vectorcraft-web-0.24.1-v0.24.1/vectorcraft-web-0.24.1.zip"
 ARG FILMCRAFT_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/filmcraft-web-0.17.0-v0.17.0/filmcraft-web-0.17.0.zip"
 ARG CRAFT_ANYTHING_URL="https://github.com/tedmelnick/craft-suite-railway/releases/download/craft-anything-web-0.3.0-v0.3.0/craft-anything-web-0.3.0.zip"
