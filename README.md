@@ -158,9 +158,9 @@ The relay's original design is Derek Cheung's: see `PRD.md` and
 
 ## Credits, licences and trademarks
 
-- **Craft Suite** was created by Derek Cheung. His repository does not include a
-  licence yet, so his original code remains his; this fork will adopt whatever licence
-  he chooses.
+- **Craft Suite** was created by Derek Cheung and is dual licensed MIT / Apache-2.0, as
+  is this fork (see License below). Derek added the same licences to his repository on
+  Nov 20, 2026; the changes in this fork are by Ted Melnick.
 - **The apps** are by the ArtCraft team (storytold), MIT / Apache-2.0. This is an
   independent community project, not made, sponsored or endorsed by the ArtCraft team.
   The five builds listed under "Built here" above are modified to add Claude control and
@@ -170,3 +170,24 @@ The relay's original design is Derek Cheung's: see `PRD.md` and
 - **Font:** Archivo, SIL Open Font License (`portal/fonts/OFL-Archivo.txt`).
 - Adobe, Microsoft, Figma and Autodesk product names are trademarks of their owners,
   used only to describe similar apps.
+
+## License
+
+Licensed under either of
+
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or <https://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or <https://opensource.org/licenses/MIT>)
+
+at your option.
+
+Copyright (c) 2026 Derek Cheung and Ted Melnick. This license covers the code in this
+repository (Dockerfile, portal, server, bridge, nginx config, Cloudflare scripts, build
+patches and docs). The Craft apps themselves are pulled from the ArtCraft team's
+repositories and remain under their own licenses, and the ArtCraft name, wordmark and
+logos remain trademarks of the ArtCraft team (see above).
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for
+inclusion in this work by you, as defined in the Apache-2.0 license, shall be dual
+licensed as above, without any additional terms or conditions.
